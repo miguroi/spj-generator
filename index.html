@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPJ Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>SPJ Generator</h1>
+    <h2>Asisten Otomatis untuk Membuat SPJ</h2>
+    
+    <div id="template-form">
+        <label for="template-name">Nama template:</label>
+        <input type="text" id="template-name" placeholder="Nama template">
+    </div>
+
+    <div id="date-form">
+        <label for="date">Tanggal Acara:</label>
+        <input type="date" id="date" placeholder="Tanggal">
+    </div>
+    
+    <h3></h3>
+    <div id="components-list"></div>
+    <div id="add-component-form">
+        <label for="component">Komponen:</label>
+        <input type="text" id="new-component-name" placeholder="Nama komponen">
+        <select id="new-component-type">
+            <option value="File">File</option>
+            <option value="Foto">Foto</option>
+        </select>
+        <button id="add-component-btn">Tambah komponen</button>
+    </div>
+    
+    <button id="generate-spj-btn">Generate SPJ</button>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

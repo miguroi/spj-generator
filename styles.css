@@ -1,0 +1,52 @@
+body {
+    font-family: Verdana, sans-serif;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+#template-form, #add-component-form {
+    margin-bottom: 20px;
+}
+
+input, select, button {
+    font-family: Verdana, sans-serif;
+    margin: 5px 0;
+    padding: 5px;
+}
+
+button {
+    background-color: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+.component-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.component-item button {
+    margin-left: 10px;
+}
+
+.move-buttons {
+    display: flex;
+    flex-direction: column;
+}
+
+.move-buttons button {
+    padding: 2px 5px;
+    font-size: 12px;
+}
