@@ -25,12 +25,6 @@ s3_client = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
 
-app = Flask(__name__, static_folder='static', static_url_path='')
-
-app.config['UPLOAD_FOLDER'] = 'uploads'
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'}
 
 def allowed_file(filename):
@@ -56,27 +50,23 @@ def process_files(files, template_name, date):
     
     for file in files:
         file_content = file.read()
-        file.seek(0)  # Reset file pointer
         if is_image(file_content):
-            pil_image = Image.open(file)
+            pil_image = Image.open(io.BytesIO(file_content))
             img_stream = io.BytesIO()
             pil_image.save(img_stream, format=pil_image.format)
             img_stream.seek(0)
             merged_doc.add_picture(img_stream, width=Inches(2), height=Inches(2))
         elif is_word(file_content):
-            doc = Document(file)
+            doc = Document(io.BytesIO(file_content))
             composer.append(doc)
     
     output_filename = f'SPJ_{template_name}_{date}.docx'
-    output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
-    composer.save(output_path)
+    output_stream = io.BytesIO()
+    composer.save(output_stream)
+    output_stream.seek(0)
     
     # Upload to S3
-    with open(output_path, 'rb') as file:
-        s3_client.upload_fileobj(file, S3_BUCKET_NAME, output_filename)
-    
-    # Remove local file
-    os.remove(output_path)
+    s3_client.upload_fileobj(output_stream, S3_BUCKET_NAME, output_filename)
     
     return output_filename
 
