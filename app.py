@@ -1,76 +1,53 @@
-import streamlit as st
+from flask import Flask, request, send_file
 from docx import Document
 from docx.shared import Inches
-import os
 from docxcompose.composer import Composer
 from PIL import Image
 import io
+import os
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'}
+app = Flask(__name__)
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
 
-def is_image(file):
-    try:
-        Image.open(file)
-        return True
-    except IOError:
-        return False
-
-def is_word(file):
-    try:
-        Document(file)
-        return True
-    except:
-        return False
-
-def process_files(files, template_name, date):
+@app.route('/generate', methods=['POST'])
+def generate_spj():
+    template_name = request.form['templateName']
+    date = request.form['tanggalAcara']
+    
     merged_doc = Document()
     composer = Composer(merged_doc)
     
-    for file in files:
-        if is_image(file):
-            merged_doc.add_picture(file, width=Inches(2), height=Inches(2))
-        elif is_word(file):
-            doc = Document(file)
-            composer.append(doc)
-    
-    output_path = os.path.join(UPLOAD_FOLDER, f'SPJ_{template_name}_{date}.docx')
-    composer.save(output_path)
-    return f'SPJ_{template_name}_{date}.docx'
-
-st.title('Document Merger')
-
-date = st.date_input('Event Date')
-template_name = st.text_input('Template Name')
-
-uploaded_files = st.file_uploader("Choose files", accept_multiple_files=True, type=list(ALLOWED_EXTENSIONS))
-
-if st.button('Generate SPJ'):
-    if not uploaded_files:
-        st.error('No files uploaded')
-    elif not date or not template_name:
-        st.error('Please fill in all fields')
-    else:
-        with st.spinner('Processing...'):
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            valid_files = [file for file in uploaded_files if allowed_file(file.name)]
+    for key, file in request.files.items():
+        if file:
+            file_data = file.read()
+            file_io = io.BytesIO(file_data)
             
-            if valid_files:
-                merged_filename = process_files(valid_files, template_name, date.strftime('%Y-%m-%d'))
-                st.success('SPJ generated successfully!')
-                
-                with open(os.path.join(UPLOAD_FOLDER, merged_filename), 'rb') as file:
-                    st.download_button(
-                        label="Download SPJ",
-                        data=file,
-                        file_name=merged_filename,
-                        mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                    )
-            else:
-                st.error('No valid files to process')
+            try:
+                # Try to open as image
+                img = Image.open(file_io)
+                merged_doc.add_picture(file_io, width=Inches(6))
+            except:
+                # If not an image, try as a Word document
+                try:
+                    doc = Document(file_io)
+                    composer.append(doc)
+                except:
+                    # If neither image nor Word document, skip
+                    continue
+    
+    output = io.BytesIO()
+    composer.save(output)
+    output.seek(0)
+    
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=f'SPJ_{template_name}_{date}.docx',
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
 
-st.sidebar.title('About')
-st.sidebar.info('This app merges multiple documents and images into a single Word document.')
+if __name__ == '__main__':
+    app.run(debug=True)
