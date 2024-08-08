@@ -11,6 +11,8 @@ from botocore.exceptions import ClientError
 from PIL import Image
 import tempfile
 import logging
+from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 app = Flask(__name__)
 
@@ -79,18 +81,27 @@ def process_files(files, template_name, date):
     merged_doc = Document()
     composer = Composer(merged_doc)
     
-    for file in files:
+    file_types = request.form.getlist('file_types')
+    captions = request.form.getlist('captions')
+    
+    for file, file_type, caption in zip(files, file_types, captions + [None] * len(files)):
         try:
             logger.debug(f"Processing file: {file.filename}")
             file_content = file.read()
-            if is_image(file_content):
+            if file_type == 'Foto':
                 logger.debug(f"{file.filename} is an image")
+                if caption:
+                    para = merged_doc.add_paragraph()
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = para.add_run(caption)
+                    run.bold = True
+                    run.font.size = Pt(12)
                 pil_image = Image.open(io.BytesIO(file_content))
                 img_stream = io.BytesIO()
                 pil_image.save(img_stream, format=pil_image.format)
                 img_stream.seek(0)
-                merged_doc.add_picture(img_stream, width=Inches(2), height=Inches(2))
-            elif is_pdf(file.filename):
+                merged_doc.add_picture(img_stream, width=Inches(6))  # Increased width for better visibility
+            elif file_type == 'PDF':
                 logger.debug(f"{file.filename} is a PDF")
                 docx_content = convert_pdf_to_docx(file_content)
                 if docx_content is None:

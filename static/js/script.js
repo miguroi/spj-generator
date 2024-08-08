@@ -6,27 +6,40 @@ function updateComponentsList() {
     components.forEach((component, index) => {
         const div = document.createElement('div');
         div.className = 'component-item';
-        div.innerHTML = `
+        let html = `
             <span>${component.name} (${component.type})</span>
             <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
             <span class="file-name">${component.file ? component.file.name : 'No file selected'}</span>
+        `;
+        
+        if (component.type === 'Foto') {
+            html += `
+                <input type="text" placeholder="Image Caption" value="${component.caption || ''}" onchange="handleCaptionChange(event, ${index})">
+            `;
+        }
+        
+        html += `
             <button onclick="removeComponent(${index})">Hapus</button>
             <div class="move-buttons">
                 <button onclick="moveComponent(${index}, -1)">↑</button>
                 <button onclick="moveComponent(${index}, 1)">↓</button>
             </div>
         `;
+        
+        div.innerHTML = html;
         list.appendChild(div);
 
-        // If a file was previously selected, set it to the file input
         if (component.file) {
             const fileInput = div.querySelector('input[type="file"]');
-            // Create a new FileList containing this file
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(component.file);
             fileInput.files = dataTransfer.files;
         }
     });
+}
+
+function handleCaptionChange(event, index) {
+    components[index].caption = event.target.value;
 }
 
 function getAcceptAttribute(type) {
@@ -100,6 +113,10 @@ function generateSPJ() {
     components.forEach((component, index) => {
         if (component.file) {
             formData.append('files', component.file);
+            formData.append(`file_types`, component.type);
+            if (component.caption) {
+                formData.append(`captions`, component.caption);
+            }
         }
     });
 
