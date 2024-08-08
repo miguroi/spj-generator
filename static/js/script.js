@@ -9,6 +9,7 @@ function updateComponentsList() {
         div.innerHTML = `
             <span>${component.name} (${component.type})</span>
             <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
+            <span class="file-name">${component.file ? component.file.name : 'No file selected'}</span>
             <button onclick="removeComponent(${index})">Hapus</button>
             <div class="move-buttons">
                 <button onclick="moveComponent(${index}, -1)">↑</button>
@@ -16,6 +17,15 @@ function updateComponentsList() {
             </div>
         `;
         list.appendChild(div);
+
+        // If a file was previously selected, set it to the file input
+        if (component.file) {
+            const fileInput = div.querySelector('input[type="file"]');
+            // Create a new FileList containing this file
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(component.file);
+            fileInput.files = dataTransfer.files;
+        }
     });
 }
 
@@ -62,6 +72,7 @@ function handleFileUpload(event, index) {
     const file = event.target.files[0];
     if (file) {
         components[index].file = file;
+        updateComponentsList();
     }
 }
 
