@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 from docx import Document
 from docx.shared import Inches
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from docxcompose.composer import Composer
 import os
 import io
@@ -10,14 +10,14 @@ import boto3
 from botocore.exceptions import ClientError
 from PIL import Image
 
-load_dotenv()
+# load_dotenv()
 
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
+# AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+# AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+# S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 
-if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY or not S3_BUCKET_NAME:
-    raise ValueError("Missing one or more required environment variables")
+# if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY or not S3_BUCKET_NAME:
+#     raise ValueError("Missing one or more required environment variables")
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 
