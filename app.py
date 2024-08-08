@@ -10,6 +10,7 @@ import boto3
 from botocore.exceptions import ClientError
 from PIL import Image
 import tempfile
+import logging
 
 app = Flask(__name__)
 
@@ -26,6 +27,7 @@ s3_client = boto3.client(
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
+s3_bucket_name=S3_BUCKET_NAME
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'pdf'}
 
@@ -43,68 +45,66 @@ def is_pdf(filename):
     return filename.lower().endswith('.pdf')
 
 def convert_pdf_to_docx(pdf_content):
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_temp:
-        pdf_temp.write(pdf_content)
-        pdf_temp_path = pdf_temp.name
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_temp:
+            pdf_temp.write(pdf_content)
+            pdf_temp_path = pdf_temp.name
 
-    docx_temp = tempfile.NamedTemporaryFile(suffix='.docx', delete=False)
-    docx_temp_path = docx_temp.name
-    docx_temp.close()
+        docx_temp = tempfile.NamedTemporaryFile(suffix='.docx', delete=False)
+        docx_temp_path = docx_temp.name
+        docx_temp.close()
 
-    # Convert PDF to DOCX
-    cv = Converter(pdf_temp_path)
-    cv.convert(docx_temp_path)
-    cv.close()
+        # Convert PDF to DOCX
+        cv = Converter(pdf_temp_path)
+        cv.convert(docx_temp_path)
+        cv.close()
 
-    # Read the converted DOCX
-    with open(docx_temp_path, 'rb') as docx_file:
-        docx_content = docx_file.read()
+        # Read the converted DOCX
+        with open(docx_temp_path, 'rb') as docx_file:
+            docx_content = docx_file.read()
 
-    # Clean up temporary files
-    os.unlink(pdf_temp_path)
-    os.unlink(docx_temp_path)
+        # Clean up temporary files
+        os.unlink(pdf_temp_path)
+        os.unlink(docx_temp_path)
 
-    return docx_content
+        return docx_content
+    except Exception as e:
+        logger.error(f"Error converting PDF to DOCX: {str(e)}")
+        return None
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def process_files(files, template_name, date):
     merged_doc = Document()
     composer = Composer(merged_doc)
     
     for file in files:
-        filename = secure_filename(file.filename)
-        file_content = file.read()
-        
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
-            pil_image = Image.open(io.BytesIO(file_content))
-            img_stream = io.BytesIO()
-            pil_image.save(img_stream, format=pil_image.format)
-            img_stream.seek(0)
-            merged_doc.add_picture(img_stream, width=Inches(2), height=Inches(2))
-        elif filename.lower().endswith('.pdf'):
-            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_temp:
-                pdf_temp.write(file_content)
-                pdf_temp_path = pdf_temp.name
-
-            docx_temp = tempfile.NamedTemporaryFile(suffix='.docx', delete=False)
-            docx_temp_path = docx_temp.name
-            docx_temp.close()
-
-            # Convert PDF to DOCX
-            cv = Converter(pdf_temp_path)
-            cv.convert(docx_temp_path)
-            cv.close()
-
-            # Read the converted DOCX
-            with open(docx_temp_path, 'rb') as docx_file:
-                doc = Document(docx_file)
+        try:
+            logger.debug(f"Processing file: {file.filename}")
+            file_content = file.read()
+            if is_image(file_content):
+                logger.debug(f"{file.filename} is an image")
+                pil_image = Image.open(io.BytesIO(file_content))
+                img_stream = io.BytesIO()
+                pil_image.save(img_stream, format=pil_image.format)
+                img_stream.seek(0)
+                merged_doc.add_picture(img_stream, width=Inches(2), height=Inches(2))
+            elif is_pdf(file.filename):
+                logger.debug(f"{file.filename} is a PDF")
+                docx_content = convert_pdf_to_docx(file_content)
+                if docx_content is None:
+                    logger.error(f"PDF conversion failed for {file.filename}")
+                    continue
+                doc = Document(io.BytesIO(docx_content))
                 composer.append(doc)
-
-            # Clean up temporary files
-            os.unlink(pdf_temp_path)
-            os.unlink(docx_temp_path)
-        else:
-            doc = Document(io.BytesIO(file_content))
-            composer.append(doc)
+            else:
+                logger.debug(f"{file.filename} is a document")
+                doc = Document(io.BytesIO(file_content))
+                composer.append(doc)
+        except Exception as e:
+            logger.error(f"Error processing {file.filename}: {str(e)}")
+            continue
     
     output_filename = f'SPJ_{template_name}_{date}.docx'
     output_stream = io.BytesIO()
@@ -112,7 +112,11 @@ def process_files(files, template_name, date):
     output_stream.seek(0)
     
     # Upload to S3
-    s3_client.upload_fileobj(output_stream, S3_BUCKET_NAME, output_filename)
+    try:
+        s3_client.upload_fileobj(output_stream, S3_BUCKET_NAME, output_filename)
+    except Exception as e:
+        logger.error(f"Error uploading to S3: {str(e)}")
+        raise
     
     return output_filename
 
@@ -138,6 +142,7 @@ def generate_spj():
         merged_filename = process_files(valid_files, template_name, date)
         return jsonify({'success': True, 'file': merged_filename})
     except Exception as e:
+        print(f"Error processing files: {str(e)}")  # line for debugging
         return jsonify({'error': str(e)}), 500
 
 @app.route('/download/<filename>')

@@ -10,29 +10,30 @@
     <h1>SPJ Generator</h1>
     <h2>Asisten Otomatis untuk Membuat SPJ</h2>
     
-    <form id="spj-form" enctype="multipart/form-data">
-        <div id="template-form">
-            <label for="template-name">Nama template:</label>
-            <input type="text" id="template-name" name="templateName" required>
-        </div>
+    <div id="template-form">
+        <label for="template-name">Nama template:</label>
+        <input type="text" id="template-name" required>
+    </div>
 
-        <div id="date-form">
-            <label for="date">Tanggal Acara:</label>
-            <input type="date" id="date" name="tanggalAcara" required>
-        </div>
-        
-        <h3>Daftar Komponen</h3>
-        <div id="components-list"></div>
-        <div id="add-component-form">
-            <label for="new-component-name">Nama Komponen:</label>
-            <input type="text" id="new-component-name" placeholder="Nama komponen">
-            <label for="new-component-file">File:</label>
-            <input type="file" id="new-component-file" accept=".png,.jpg,.jpeg,.gif,.doc,.docx,.pdf">
-            <button type="button" id="add-component-btn">Tambah komponen</button>
-        </div>
-        
-        <button type="submit" id="generate-spj-btn">Generate SPJ</button>
-    </form>
+    <div id="date-form">
+        <label for="date">Tanggal Acara:</label>
+        <input type="date" id="date" required>
+    </div>
+
+    <h3>Daftar Komponen</h3>
+    <div id="components-list"></div>
+
+    <div id="add-component-form">
+        <input type="text" id="new-component-name" placeholder="Nama Komponen">
+        <select id="new-component-type">
+            <option value="Foto">Foto</option>
+            <option value="Dokumen">Dokumen</option>
+            <option value="PDF">PDF</option>
+        </select>
+        <button id="add-component-btn">Tambah komponen</button>
+    </div>
+
+    <button id="generate-spj-btn">Generate SPJ</button>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
