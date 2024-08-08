@@ -4,10 +4,12 @@ from werkzeug.utils import secure_filename
 from docx import Document
 from docx.shared import Inches
 from docxcompose.composer import Composer
+from pdf2docx import Converter
 import io
 import boto3
 from botocore.exceptions import ClientError
 from PIL import Image
+import tempfile
 
 app = Flask(__name__)
 
@@ -25,7 +27,7 @@ s3_client = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -37,12 +39,32 @@ def is_image(file_content):
     except IOError:
         return False
 
-def is_word(file_content):
-    try:
-        Document(io.BytesIO(file_content))
-        return True
-    except:
-        return False
+def is_pdf(filename):
+    return filename.lower().endswith('.pdf')
+
+def convert_pdf_to_docx(pdf_content):
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_temp:
+        pdf_temp.write(pdf_content)
+        pdf_temp_path = pdf_temp.name
+
+    docx_temp = tempfile.NamedTemporaryFile(suffix='.docx', delete=False)
+    docx_temp_path = docx_temp.name
+    docx_temp.close()
+
+    # Convert PDF to DOCX
+    cv = Converter(pdf_temp_path)
+    cv.convert(docx_temp_path)
+    cv.close()
+
+    # Read the converted DOCX
+    with open(docx_temp_path, 'rb') as docx_file:
+        docx_content = docx_file.read()
+
+    # Clean up temporary files
+    os.unlink(pdf_temp_path)
+    os.unlink(docx_temp_path)
+
+    return docx_content
 
 def process_files(files, template_name, date):
     merged_doc = Document()
@@ -56,7 +78,11 @@ def process_files(files, template_name, date):
             pil_image.save(img_stream, format=pil_image.format)
             img_stream.seek(0)
             merged_doc.add_picture(img_stream, width=Inches(2), height=Inches(2))
-        elif is_word(file_content):
+        elif is_pdf(file.filename):
+            docx_content = convert_pdf_to_docx(file_content)
+            doc = Document(io.BytesIO(docx_content))
+            composer.append(doc)
+        else:
             doc = Document(io.BytesIO(file_content))
             composer.append(doc)
     
