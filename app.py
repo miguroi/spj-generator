@@ -71,17 +71,37 @@ def process_files(files, template_name, date):
     composer = Composer(merged_doc)
     
     for file in files:
+        filename = secure_filename(file.filename)
         file_content = file.read()
-        if is_image(file_content):
+        
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
             pil_image = Image.open(io.BytesIO(file_content))
             img_stream = io.BytesIO()
             pil_image.save(img_stream, format=pil_image.format)
             img_stream.seek(0)
             merged_doc.add_picture(img_stream, width=Inches(2), height=Inches(2))
-        elif is_pdf(file.filename):
-            docx_content = convert_pdf_to_docx(file_content)
-            doc = Document(io.BytesIO(docx_content))
-            composer.append(doc)
+        elif filename.lower().endswith('.pdf'):
+            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_temp:
+                pdf_temp.write(file_content)
+                pdf_temp_path = pdf_temp.name
+
+            docx_temp = tempfile.NamedTemporaryFile(suffix='.docx', delete=False)
+            docx_temp_path = docx_temp.name
+            docx_temp.close()
+
+            # Convert PDF to DOCX
+            cv = Converter(pdf_temp_path)
+            cv.convert(docx_temp_path)
+            cv.close()
+
+            # Read the converted DOCX
+            with open(docx_temp_path, 'rb') as docx_file:
+                doc = Document(docx_file)
+                composer.append(doc)
+
+            # Clean up temporary files
+            os.unlink(pdf_temp_path)
+            os.unlink(docx_temp_path)
         else:
             doc = Document(io.BytesIO(file_content))
             composer.append(doc)
