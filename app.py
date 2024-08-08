@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request, send_file, jsonify
 from werkzeug.utils import secure_filename
-from docx import Document
+from docx import Document #python-docx
 from docx.shared import Inches
 import os
 import docx
-from docxcompose.composer import Composer
-from PIL import Image
+from docxcompose.composer import Composer #docxcompose
+from PIL import Image #Pillow
 import io
 
 app = Flask(__name__)
