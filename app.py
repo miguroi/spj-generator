@@ -1,23 +1,29 @@
+import os
 from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 from docx import Document
 from docx.shared import Inches
-# from dotenv import load_dotenv
 from docxcompose.composer import Composer
-import os
 import io
 import boto3
 from botocore.exceptions import ClientError
 from PIL import Image
 
-# load_dotenv()
+app = Flask(__name__)
 
-# AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-# AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-# S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 
-# if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY or not S3_BUCKET_NAME:
-#     raise ValueError("Missing one or more required environment variables")
+if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME]):
+    print("Warning: One or more required environment variables are missing.")
+
+# S3 configuration
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 
@@ -26,13 +32,6 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'}
-
-# S3 configuration
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -119,4 +118,4 @@ def download_file(filename):
         return str(e), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
