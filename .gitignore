@@ -3,3 +3,4 @@ spj_generator_key.pem
 __pycache__
 *.pyc
 uploads/
+.env
