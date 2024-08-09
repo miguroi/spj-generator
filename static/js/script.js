@@ -177,7 +177,7 @@ function addInvoiceItem() {
         <input type="text" class="item-quantity" placeholder="Jumlah (e.g. 25 Orang)">
         <input type="text" class="item-price" placeholder="Harga">
         <input type="text" class="item-total" placeholder="Total">
-        <button class="remove-item">Remove</button>
+        <button class="remove-item" title="Remove Item">&times;</button>
     `;
     invoiceItemsContainer.appendChild(newItem);
 

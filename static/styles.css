@@ -135,12 +135,50 @@ button:hover {
 
 .invoice-item {
     display: flex;
+    align-items: center;
     margin-bottom: 10px;
 }
 
 .invoice-item input {
     flex: 1;
     margin-right: 5px;
+    min-width: 0; /* Allows inputs to shrink below their default size */
+}
+
+.invoice-item .remove-item {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    margin-left: 5px;
+}
+
+.invoice-item .remove-item:hover {
+    background-color: #cc0000;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    .invoice-item {
+        flex-wrap: wrap;
+    }
+
+    .invoice-item input {
+        flex-basis: calc(50% - 5px);
+        margin-bottom: 5px;
+    }
+
+    .invoice-item .remove-item {
+        margin-left: auto;
+    }
 }
 
 .invoice-item button {
