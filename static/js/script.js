@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', function() {
         addInvoiceItemBtn.addEventListener('click', addInvoiceItem);
     }
 
+    const generateKuitansiBtn = document.getElementById('generate-kuitansi-btn');
+    if (generateKuitansiBtn) {
+        generateKuitansiBtn.addEventListener('click', generateKuitansi);
+    }
+
     initializeApp();
 });
 
@@ -210,6 +215,37 @@ function getInvoiceData() {
             noHP: document.getElementById('invoice-recipient-phone').value
         }
     };
+}
+
+function generateKuitansi() {
+    const invoiceData = getInvoiceData();
+    
+    fetch('/generate_kuitansi', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(invoiceData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Kuitansi generated successfully!');
+            // Add the generated invoice to the components list
+            components.push({
+                name: 'Generated Kuitansi',
+                type: 'Dokumen',
+                file: new File([new Blob()], data.filename, {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})
+            });
+            updateComponentsList();
+        } else {
+            alert('Error generating Kuitansi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while generating the Kuitansi. Please try again.');
+    });
 }
 
 function generateSPJ() {

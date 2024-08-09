@@ -198,5 +198,28 @@ def download_file(filename):
     except ClientError as e:
         return str(e), 404
 
+@app.route('/generate_kuitansi', methods=['POST'])
+def generate_kuitansi():
+    invoice_data = request.json
+    
+    try:
+        # Generate invoice using the data from the frontend
+        invoice_path = generate_invoice(invoice_data)
+        
+        # Get the filename
+        filename = os.path.basename(invoice_path)
+        
+        # Upload the file to S3
+        with open(invoice_path, 'rb') as invoice_file:
+            s3_client.upload_fileobj(invoice_file, S3_BUCKET_NAME, filename)
+        
+        # Remove the local file after uploading to S3
+        os.remove(invoice_path)
+        
+        return jsonify({'success': True, 'filename': filename})
+    except Exception as e:
+        logger.error(f"Error generating kuitansi: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=False)
