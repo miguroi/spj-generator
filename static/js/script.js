@@ -8,32 +8,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const invoiceDetails = document.getElementById('invoice-details');
     const notulensiDetails = document.getElementById('notulensi-details');
 
-    function toggleForms(event) {
-        consolelog('toggleForms called');
-        const clickedBtn = event.target;
-        console.log('clickedBtn:', clickedBtn.id);
-        const otherBtn = clickedBtn === toggleInvoiceBtn ? toggleNotulensiBtn : toggleInvoiceBtn;
-        const clickedDetails = clickedBtn === toggleInvoiceBtn ? invoiceDetails : notulensiDetails;
-        const otherDetails = clickedBtn === toggleInvoiceBtn ? notulensiDetails : invoiceDetails;
-
-        if (clickedDetails.style.display === 'none' || clickedDetails.style.display === '') {
-            clickedDetails.style.display = 'block';
-            otherDetails.style.display = 'none';
-            clickedBtn.classList.add('active');
-            otherBtn.classList.remove('active');
+    function toggleForm(formElement, button) {
+        if (formElement.style.display === 'none' || formElement.style.display === '') {
+            formElement.style.display = 'block';
+            button.classList.add('active');
         } else {
-            clickedDetails.style.display = 'none';
-            clickedBtn.classList.remove('active');
+            formElement.style.display = 'none';
+            button.classList.remove('active');
         }
     }
 
     if (toggleInvoiceBtn && toggleNotulensiBtn) {
-        toggleInvoiceBtn.addEventListener('click', toggleForms);
-        toggleNotulensiBtn.addEventListener('click', toggleForms);
+        toggleInvoiceBtn.addEventListener('click', function() {
+            toggleForm(invoiceDetails, toggleInvoiceBtn);
+        });
+
+        toggleNotulensiBtn.addEventListener('click', function() {
+            toggleForm(notulensiDetails, toggleNotulensiBtn);
+        });
     } else {
         console.error('Toggle buttons not found');
     }
-
+    
     initializeApp();
 });
 
