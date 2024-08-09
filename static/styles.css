@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: Verdana, sans-serif;
     max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
@@ -11,7 +11,8 @@ h1, h2, h3 {
     color: #333;
 }
 
-#template-form, #date-form, #add-component-form {
+#template-form, #date-form, #add-component-form, #invoice-form {
+    text-align: center;
     background-color: white;
     padding: 15px;
     margin-bottom: 20px;
@@ -24,7 +25,7 @@ input, select, button {
     font-size: 16px;
     margin: 5px 0;
     padding: 8px;
-    width: 100%;
+    width: 50%;
     box-sizing: border-box;
 }
 
@@ -119,20 +120,6 @@ button:hover {
     }
 }
 
-#invoice-form {
-    background-color: white;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-#invoice-form input,
-#invoice-form textarea {
-    width: 100%;
-    margin-bottom: 10px;
-}
-
 .invoice-item {
     display: flex;
     align-items: center;
@@ -142,7 +129,7 @@ button:hover {
 .invoice-item input {
     flex: 1;
     margin-right: 5px;
-    min-width: 0; /* Allows inputs to shrink below their default size */
+    min-width: 0;
 }
 
 .invoice-item .remove-item {
@@ -165,7 +152,6 @@ button:hover {
     background-color: #cc0000;
 }
 
-/* Responsive design for smaller screens */
 @media (max-width: 768px) {
     .invoice-item {
         flex-wrap: wrap;
@@ -181,29 +167,16 @@ button:hover {
     }
 }
 
-.invoice-item button {
-    background-color: #ff4444;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-#add-invoice-item {
-    margin-bottom: 10px;
-}
-
-#toggle-invoice-details {
+#toggle-invoice-details, #toggle-notulensi-details {
     background-color: #4CAF50;
     color: white;
     padding: 10px;
     border: none;
     cursor: pointer;
-    margin-bottom: 10px;
+    margin-right: 10px; /* Spacing between the toggle buttons */
 }
 
-#toggle-invoice-details:hover {
+#toggle-invoice-details:hover, #toggle-notulensi-details:hover {
     background-color: #45a049;
 }
 
@@ -212,4 +185,14 @@ button:hover {
     padding: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
+}
+
+#invoice-form input, #invoice-form textarea {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#invoice-form .toggle-buttons {
+    display: flex;
+    gap: 10px;
 }

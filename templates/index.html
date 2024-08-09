@@ -21,7 +21,10 @@
     </div>
 
 <div id="invoice-form">
-    <button id="toggle-invoice-details">Buat Kuitansi</button>
+    <div class="toggle-buttons">
+        <button id="toggle-invoice-details">Buat Kuitansi</button>
+        <button id="toggle-notulensi-details">Buat Notulensi</button>
+    </div>
     <div id="invoice-details" style="display: none;">
         <input type="text" id="invoice-number" placeholder="Nomor Invoice">
         <input type="text" id="invoice-sender" placeholder="Pengirim">
@@ -42,10 +45,16 @@
         <input type="text" id="invoice-recipient-name" placeholder="Nama Penerima">
         <input type="text" id="invoice-recipient-address" placeholder="Alamat Penerima">
         <input type="text" id="invoice-recipient-phone" placeholder="No. HP Penerima">
+        
+        <button id="generate-kuitansi-btn">Generate Kuitansi</button>
     </div>
-
-    <button id="generate-kuitansi-btn">Generate Kuitansi</button>
+    <div id="notulensi-details" style="display: none;">
+        <!-- Add content for the other details section here -->
+        <p>This is the other details section. Add your content here.</p>
+    </div>
 </div>
+
+
 
     <h3>Daftar Komponen</h3>
     <div id="components-list"></div>
