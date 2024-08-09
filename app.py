@@ -11,7 +11,11 @@ import boto3
 from botocore.exceptions import ClientError
 import io
 
-app = Flask(__name__, static_url_path='/static', static_folder='static')
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -32,19 +36,14 @@ components = []
 @app.route('/add-component', methods=['POST'])
 def add_component():
     new_component = request.json
-    logger.debug(f"Adding new component: {new_component}")
-    
-    # Check if a component with the same name and type already exists
-    existing_component = next((c for c in components if c['name'] == new_component['name'] and c['type'] == new_component['type']), None)
-    
-    if existing_component:
-        logger.warning(f"Component already exists: {new_component['name']} ({new_component['type']})")
-        return jsonify({'success': False, 'error': 'Component already exists'}), 400
+    app.logger.debug(f"Received new component: {new_component}")
     
     if 'file' in new_component and new_component['file']:
         try:
             file_data = base64.b64decode(new_component['file'].split(',')[1])
             filename = secure_filename(new_component['fileName'])
+            
+            app.logger.debug(f"Attempting to upload file: {filename}")
             
             # Upload file to S3
             s3_client.upload_fileobj(
@@ -55,17 +54,14 @@ def add_component():
             )
             
             new_component['file'] = f"https://{S3_BUCKET_NAME}.s3.amazonaws.com/{filename}"
-            logger.info(f"File uploaded to S3: {new_component['file']}")
+            app.logger.info(f"File uploaded to S3: {new_component['file']}")
         except Exception as e:
-            logger.error(f"Error uploading file to S3: {str(e)}")
+            app.logger.error(f"Error uploading file to S3: {str(e)}")
             return jsonify({'success': False, 'error': 'Error uploading file'}), 500
     
     components.append(new_component)
-    logger.info(f"Component added successfully: {new_component['name']} ({new_component['type']})")
+    app.logger.info(f"Component added successfully: {new_component['name']} ({new_component['type']})")
     return jsonify({'success': True})
-
-# Update other functions to work with S3 URLs instead of local file paths
-# For example, in generate_spj:
 
 @app.route('/generate-spj', methods=['POST'])
 def generate_spj():
