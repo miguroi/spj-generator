@@ -10,31 +10,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleForms(event) {
         const clickedBtn = event.target;
-        const invoiceDetails = document.getElementById('invoice-details');
-        const notulensiDetails = document.getElementById('notulensi-details');
-        const invoiceBtn = document.getElementById('toggle-invoice-details');
-        const notulensiBtn = document.getElementById('toggle-notulensi-details');
+        const otherBtn = clickedBtn === toggleInvoiceBtn ? toggleNotulensiBtn : toggleInvoiceBtn;
+        const clickedDetails = clickedBtn === toggleInvoiceBtn ? invoiceDetails : notulensiDetails;
+        const otherDetails = clickedBtn === toggleInvoiceBtn ? notulensiDetails : invoiceDetails;
 
-        if (clickedBtn === invoiceBtn) {
-            if (invoiceDetails.style.display === 'none') {
-                invoiceDetails.style.display = 'block';
-                notulensiDetails.style.display = 'none';
-                invoiceBtn.classList.add('active');
-                notulensiBtn.classList.remove('active');
-            } else {
-                invoiceDetails.style.display = 'none';
-                invoiceBtn.classList.remove('active');
-            }
-        } else if (clickedBtn === notulensiBtn) {
-            if (notulensiDetails.style.display === 'none') {
-                notulensiDetails.style.display = 'block';
-                invoiceDetails.style.display = 'none';
-                notulensiBtn.classList.add('active');
-                invoiceBtn.classList.remove('active');
-            } else {
-                notulensiDetails.style.display = 'none';
-                notulensiBtn.classList.remove('active');
-            }
+        if (clickedDetails.style.display === 'none' || clickedDetails.style.display === '') {
+            clickedDetails.style.display = 'block';
+            otherDetails.style.display = 'none';
+            clickedBtn.classList.add('active');
+            otherBtn.classList.remove('active');
+        } else {
+            clickedDetails.style.display = 'none';
+            clickedBtn.classList.remove('active');
         }
     }
 
@@ -44,6 +31,9 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Toggle buttons not found');
     }
+
+    invoiceDetails.style.display = 'none';
+    notulensiDetails.style.display = 'none';
 
     initializeApp();
 });
