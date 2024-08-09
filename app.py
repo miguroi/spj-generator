@@ -119,6 +119,11 @@ def download_spj(filename):
     except ClientError as e:
         logger.error(f"Error downloading file from S3: {str(e)}")
         return jsonify({'error': 'File not found'}), 404
+    
+@app.route('/get-components', methods=['GET'])
+def get_components():
+    app.logger.debug(f"Getting components: {components}")
+    return jsonify(components)
 
 if __name__ == '__main__':
     app.run(debug=True)
