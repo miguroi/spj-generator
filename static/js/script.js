@@ -271,17 +271,17 @@ function generateKuitansi() {
     });
 }
 
-function toggleNotulensiDetails() {
-    const notulensiDetails = document.getElementById('notulensi-details');
-    const toggleBtn = document.getElementById('toggle-notulensi-details');
-    if (notulensiDetails.style.display === 'none') {
-        notulensiDetails.style.display = 'block';
-        // toggleBtn.textContent = 'Sembunyikan Detail Notulensi';
-    } else {
-        notulensiDetails.style.display = 'none';
-        // toggleBtn.textContent = 'Tampilkan Detail Notulensi';
-    }
-}
+// function toggleNotulensiDetails() {
+//     const notulensiDetails = document.getElementById('notulensi-details');
+//     const toggleBtn = document.getElementById('toggle-notulensi-details');
+//     if (notulensiDetails.style.display === 'none') {
+//         notulensiDetails.style.display = 'block';
+//         // toggleBtn.textContent = 'Sembunyikan Detail Notulensi';
+//     } else {
+//         notulensiDetails.style.display = 'none';
+//         // toggleBtn.textContent = 'Tampilkan Detail Notulensi';
+//     }
+// }
 
 function addPeserta() {
     const pesertaList = document.getElementById('notulensi-peserta-list');
