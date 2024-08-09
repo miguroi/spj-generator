@@ -13,6 +13,8 @@ import tempfile
 import logging
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+import json
+import subprocess
 
 app = Flask(__name__)
 
@@ -131,6 +133,15 @@ def process_files(files, template_name, date):
     
     return output_filename
 
+def generate_invoice(data):
+    try:
+        json_data = json.dumps(data)
+        result = subprocess.run(['node', 'generate_invoice.js', json_data], capture_output=True, text=True, check=True)
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error generating invoice: {e.stderr}")
+        raise Exception("Failed to generate invoice")
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -150,10 +161,50 @@ def generate_spj():
         return jsonify({'error': 'No valid files to process'}), 400
     
     try:
+        # Generate invoice
+        invoice_data = {
+            "nomor": "016",  # You may want to generate this dynamically
+            "pengirim": "Sekretaris PPS Desa Tegalgondo",
+            "jumlah": "Rp 620.000,-",
+            "terbilang": "Enam Ratus Dua Puluh Ribu Rupiah",
+            "uraian": f"Pembelian konsumsi dalam rangka {template_name} pada Tanggal {date} di Balai Desa Tegalgondo",
+            "item": [
+                {
+                    "order": 1,
+                    "type": "Konsumsi Peserta",
+                    "quant": "25 Orang",
+                    "price": "20.000",
+                    "total": "500.000"
+                },
+                {
+                    "order": 2,
+                    "type": "Konsumsi Panitia",
+                    "quant": "25 Orang",
+                    "price": "20.000",
+                    "total": "500.000"
+                }
+            ],
+            "iotal": "1.000.000",
+            "tempatTanggal": f"Tegalgondo, {date}",
+            "penerima": {
+                "nama": "AAA Kitchen",
+                "alamat": "Desa Tegalgondo",
+                "noHP": "08113666018"
+            }
+        }
+        
+        invoice_path = generate_invoice(invoice_data)
+        
+        # Add the generated invoice to the list of files to process
+        with open(invoice_path, 'rb') as invoice_file:
+            invoice_file_obj = io.BytesIO(invoice_file.read())
+            invoice_file_obj.name = os.path.basename(invoice_path)
+            valid_files.append(invoice_file_obj)
+        
         merged_filename = process_files(valid_files, template_name, date)
         return jsonify({'success': True, 'file': merged_filename})
     except Exception as e:
-        print(f"Error processing files: {str(e)}")  # line for debugging
+        logger.error(f"Error processing files: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/download/<filename>')

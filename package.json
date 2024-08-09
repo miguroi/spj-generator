@@ -1,0 +1,7 @@
+{
+    "name": "spj-generator",
+    "version": "1.0.0",
+    "dependencies": {
+      "carbone": "^3.2.3"
+    }
+  }
