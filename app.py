@@ -151,6 +151,7 @@ def generate_spj():
     template_name = request.form.get('templateName')
     date = request.form.get('tanggalAcara')
     files = request.files.getlist('files')
+    invoice_data = json.loads(request.form.get('invoiceData'))
     
     if not template_name or not date or not files:
         return jsonify({'error': 'Missing required data'}), 400
@@ -161,38 +162,7 @@ def generate_spj():
         return jsonify({'error': 'No valid files to process'}), 400
     
     try:
-        # Generate invoice
-        invoice_data = {
-            "nomor": "016",  # You may want to generate this dynamically
-            "pengirim": "Sekretaris PPS Desa Tegalgondo",
-            "jumlah": "Rp 620.000,-",
-            "terbilang": "Enam Ratus Dua Puluh Ribu Rupiah",
-            "uraian": f"Pembelian konsumsi dalam rangka {template_name} pada Tanggal {date} di Balai Desa Tegalgondo",
-            "item": [
-                {
-                    "order": 1,
-                    "type": "Konsumsi Peserta",
-                    "quant": "25 Orang",
-                    "price": "20.000",
-                    "total": "500.000"
-                },
-                {
-                    "order": 2,
-                    "type": "Konsumsi Panitia",
-                    "quant": "25 Orang",
-                    "price": "20.000",
-                    "total": "500.000"
-                }
-            ],
-            "iotal": "1.000.000",
-            "tempatTanggal": f"Tegalgondo, {date}",
-            "penerima": {
-                "nama": "AAA Kitchen",
-                "alamat": "Desa Tegalgondo",
-                "noHP": "08113666018"
-            }
-        }
-        
+        # Generate invoice using the data from the frontend
         invoice_path = generate_invoice(invoice_data)
         
         # Add the generated invoice to the list of files to process

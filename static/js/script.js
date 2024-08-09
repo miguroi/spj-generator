@@ -1,8 +1,14 @@
 let components = [];
 let sortable;
+let invoiceItems = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded and parsed');
+    const addInvoiceItemBtn = document.getElementById('add-invoice-item');
+    if (addInvoiceItemBtn) {
+        addInvoiceItemBtn.addEventListener('click', addInvoiceItem);
+    }
+
     initializeApp();
 });
 
@@ -162,6 +168,50 @@ function handleFileUpload(event, index) {
     }
 }
 
+function addInvoiceItem() {
+    const invoiceItemsContainer = document.getElementById('invoice-items');
+    const newItem = document.createElement('div');
+    newItem.className = 'invoice-item';
+    newItem.innerHTML = `
+        <input type="text" class="item-type" placeholder="Jenis Item">
+        <input type="text" class="item-quantity" placeholder="Jumlah (e.g. 25 Orang)">
+        <input type="text" class="item-price" placeholder="Harga">
+        <input type="text" class="item-total" placeholder="Total">
+        <button class="remove-item">Remove</button>
+    `;
+    invoiceItemsContainer.appendChild(newItem);
+
+    newItem.querySelector('.remove-item').addEventListener('click', function() {
+        invoiceItemsContainer.removeChild(newItem);
+    });
+}
+
+function getInvoiceData() {
+    const invoiceItems = Array.from(document.querySelectorAll('.invoice-item')).map((item, index) => ({
+        order: index + 1,
+        type: item.querySelector('.item-type').value,
+        quant: item.querySelector('.item-quantity').value,
+        price: item.querySelector('.item-price').value,
+        total: item.querySelector('.item-total').value
+    }));
+
+    return {
+        nomor: document.getElementById('invoice-number').value,
+        pengirim: document.getElementById('invoice-sender').value,
+        jumlah: document.getElementById('invoice-amount').value,
+        terbilang: document.getElementById('invoice-amount-words').value,
+        uraian: document.getElementById('invoice-description').value,
+        item: invoiceItems,
+        iotal: document.getElementById('invoice-total').value,
+        tempatTanggal: `Tegalgondo, ${document.getElementById('date').value}`,
+        penerima: {
+            nama: document.getElementById('invoice-recipient-name').value,
+            alamat: document.getElementById('invoice-recipient-address').value,
+            noHP: document.getElementById('invoice-recipient-phone').value
+        }
+    };
+}
+
 function generateSPJ() {
     console.log('Generating SPJ');
     const templateName = document.getElementById('template-name').value;
@@ -188,6 +238,7 @@ function generateSPJ() {
     const formData = new FormData();
     formData.append('templateName', templateName);
     formData.append('tanggalAcara', tanggalAcara);
+    formData.append('invoiceData', JSON.stringify(getInvoiceData()));
 
     components.forEach((component, index) => {
         if (component.file) {

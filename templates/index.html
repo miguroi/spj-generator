@@ -20,6 +20,29 @@
         <input type="date" id="date" required>
     </div>
 
+    <h3>Invoice Details</h3>
+<div id="invoice-form">
+    <input type="text" id="invoice-number" placeholder="Nomor Invoice">
+    <input type="text" id="invoice-sender" placeholder="Pengirim">
+    <input type="text" id="invoice-amount" placeholder="Jumlah (e.g. Rp 620.000,-)">
+    <input type="text" id="invoice-amount-words" placeholder="Terbilang">
+    <textarea id="invoice-description" placeholder="Uraian"></textarea>
+    <h4>Items</h4>
+    <div id="invoice-items">
+        <div class="invoice-item">
+            <input type="text" class="item-type" placeholder="Jenis Item">
+            <input type="text" class="item-quantity" placeholder="Jumlah (e.g. 25 Orang)">
+            <input type="text" class="item-price" placeholder="Harga">
+            <input type="text" class="item-total" placeholder="Total">
+        </div>
+    </div>
+    <button id="add-invoice-item">Add Item</button>
+    <input type="text" id="invoice-total" placeholder="Total Invoice">
+    <input type="text" id="invoice-recipient-name" placeholder="Nama Penerima">
+    <input type="text" id="invoice-recipient-address" placeholder="Alamat Penerima">
+    <input type="text" id="invoice-recipient-phone" placeholder="No. HP Penerima">
+</div>
+
     <h3>Daftar Komponen</h3>
     <div id="components-list"></div>
 
