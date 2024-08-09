@@ -271,7 +271,17 @@ def generate_notulensi():
     logger.info(f"Received notulensi data: {notulensi_data}")
     
     try:
-        notulensi_path = generate_notulensi(notulensi_data)
+        # Call the Node.js script to generate the notulensi
+        result = subprocess.run(['/app/.heroku/node/bin/node', 'generate_notulensi.js', json.dumps(notulensi_data)], 
+                                capture_output=True, text=True, check=True)
+        
+        # Extract the output path from the Node.js script output
+        output_path_match = re.search(r'OUTPUT_PATH:(.+)', result.stdout)
+        if output_path_match:
+            notulensi_path = output_path_match.group(1).strip()
+        else:
+            raise Exception("Failed to extract output path from Node.js script")
+
         logger.info(f"Notulensi generated at: {notulensi_path}")
         
         filename = os.path.basename(notulensi_path)
