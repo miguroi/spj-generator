@@ -136,10 +136,13 @@ def process_files(files, template_name, date):
 def generate_invoice(data):
     try:
         json_data = json.dumps(data)
+        print(f"Attempting to generate invoice with data: {json_data}")
         result = subprocess.run(['/app/.heroku/node/bin/node', 'generate_invoice.js', json_data], capture_output=True, text=True, check=True)
+        print(f"Node.js script output: {result.stdout}")
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error generating invoice: {e.stderr}")
+        print(f"Error running Node.js script: {e}")
+        print(f"Script error output: {e.stderr}")
         raise Exception("Failed to generate invoice")
 
 @app.route('/')
