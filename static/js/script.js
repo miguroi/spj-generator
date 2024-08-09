@@ -9,7 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const notulensiDetails = document.getElementById('notulensi-details');
 
     function toggleForms(event) {
+        consolelog('toggleForms called');
         const clickedBtn = event.target;
+        console.log('clickedBtn:', clickedBtn.id);
         const otherBtn = clickedBtn === toggleInvoiceBtn ? toggleNotulensiBtn : toggleInvoiceBtn;
         const clickedDetails = clickedBtn === toggleInvoiceBtn ? invoiceDetails : notulensiDetails;
         const otherDetails = clickedBtn === toggleInvoiceBtn ? notulensiDetails : invoiceDetails;
