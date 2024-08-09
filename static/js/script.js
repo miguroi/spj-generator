@@ -14,34 +14,23 @@ document.addEventListener('DOMContentLoaded', function() {
         generateKuitansiBtn.addEventListener('click', generateKuitansi);
     }
 
-    document.getElementById('toggle-invoice-details').addEventListener('click', function() {
-        toggleDetails('toggle-invoice-details');
-    });
-    document.getElementById('toggle-notulensi-details').addEventListener('click', function() {
-        toggleDetails('toggle-notulensi-details');
-    });
+    const toggleInvoiceDetailsBtn = document.getElementById('toggle-invoice-details');
+    const invoiceDetails = document.getElementById('invoice-details');
+
+    if (toggleInvoiceDetailsBtn) {
+        toggleInvoiceDetailsBtn.addEventListener('click', function() {
+            if (invoiceDetails.style.display === 'none') {
+                invoiceDetails.style.display = 'block';
+                // toggleInvoiceDetailsBtn.textContent = 'Sembunyikan Detail Kuitansi';
+            } else {
+                invoiceDetails.style.display = 'none';
+                // toggleInvoiceDetailsBtn.textContent = 'Tampilkan Detail Kuitansi';
+            }
+        });
+    }
 
     initializeApp();
 });
-
-function toggleDetails(buttonId) {
-    const invoiceDetails = document.getElementById('invoice-details');
-    const notulensiDetails = document.getElementById('notulensi-details');
-    const invoiceBtn = document.getElementById('toggle-invoice-details');
-    const notulensiBtn = document.getElementById('toggle-notulensi-details');
-
-    if (buttonId === 'toggle-invoice-details') {
-        invoiceDetails.style.display = invoiceDetails.style.display === 'none' ? 'block' : 'none';
-        notulensiDetails.style.display = 'none';
-        invoiceBtn.classList.toggle('active');
-        notulensiBtn.classList.remove('active');
-    } else if (buttonId === 'toggle-notulensi-details') {
-        notulensiDetails.style.display = notulensiDetails.style.display === 'none' ? 'block' : 'none';
-        invoiceDetails.style.display = 'none';
-        notulensiBtn.classList.toggle('active');
-        invoiceBtn.classList.remove('active');
-    }
-}
 
 function initializeApp() {
     const addComponentBtn = document.getElementById('add-component-btn');
