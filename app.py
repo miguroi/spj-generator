@@ -45,71 +45,32 @@ def process_files(files, nama_acara, tanggal_acara):
     merged_doc = Document()
     composer = Composer(merged_doc)
     
-    # Add title page
-    title_para = merged_doc.add_paragraph()
-    title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title_run = title_para.add_run(f"SPJ {nama_acara}")
-    title_run.bold = True
-    title_run.font.size = Pt(18)
-    
-    date_para = merged_doc.add_paragraph()
-    date_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    date_run = date_para.add_run(f"Tanggal: {tanggal_acara}")
-    date_run.font.size = Pt(14)
-    
-    merged_doc.add_page_break()
-    
     for file_data in files:
         file = file_data['file']
         file_type = file_data['type']
         file_name = file_data['name']
         
         try:
-            logger.debug(f"Processing file: {file.filename}")
             file_content = file.read()
             
-            # Add a header for each component
-            header_para = merged_doc.add_paragraph()
-            header_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            header_run = header_para.add_run(f"{file_type}: {file_name}")
-            header_run.bold = True
-            header_run.font.size = Pt(14)
-            
             if file_type in ['File Gambar', 'Dokumentasi']:
-                pil_image = Image.open(io.BytesIO(file_content))
+                img = Image.open(io.BytesIO(file_content))
                 img_stream = io.BytesIO()
-                pil_image.save(img_stream, format=pil_image.format)
+                img.save(img_stream, format=img.format)
                 img_stream.seek(0)
                 merged_doc.add_picture(img_stream, width=Inches(6))
             elif file_type == 'File PDF':
                 docx_content = convert_pdf_to_docx(file_content)
-                if docx_content is None:
-                    logger.error(f"PDF conversion failed for {file.filename}")
-                    continue
-                doc = Document(io.BytesIO(docx_content))
-                composer.append(doc)
-            else:  # Word documents and other file types
+                if docx_content:
+                    doc = Document(io.BytesIO(docx_content))
+                    composer.append(doc)
+            else:  # Assume it's a Word document or other supported file type
                 doc = Document(io.BytesIO(file_content))
                 composer.append(doc)
             
-            merged_doc.add_page_break()
         except Exception as e:
-            logger.error(f"Error processing {file.filename}: {str(e)}")
+            logger.error(f"Error processing {file_name}: {str(e)}")
             continue
-    
-    output_filename = f'SPJ_{nama_acara}_{tanggal_acara}.docx'
-    output_stream = io.BytesIO()
-    composer.save(output_stream)
-    output_stream.seek(0)
-    
-    # Upload to S3
-    try:
-        s3_client.upload_fileobj(output_stream, S3_BUCKET_NAME, output_filename)
-    except Exception as e:
-        logger.error(f"Error uploading to S3: {str(e)}")
-        raise
-    
-    return output_filename
 
 @app.route('/')
 def index():
