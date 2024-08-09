@@ -26,21 +26,21 @@
         <button id="toggle-notulensi-details">Buat Notulensi</button>
     </div>
     <div id="invoice-details" style="display: none;">
-        <input type="text" id="invoice-number" placeholder="Nomor Invoice">
-        <input type="text" id="invoice-sender" placeholder="Pengirim">
-        <input type="text" id="invoice-amount" placeholder="Jumlah (e.g. Rp 620.000,-)">
-        <input type="text" id="invoice-amount-words" placeholder="Terbilang">
+        <input type="text" id="invoice-number" placeholder="Nomor Invoice (cth. 01)">
+        <input type="text" id="invoice-sender" placeholder="Pengirim (cth. Sekretaris PPS)">
+        <input type="text" id="invoice-amount" placeholder="Jumlah (cth. Rp 620.000,-)">
+        <input type="text" id="invoice-amount-words" placeholder="Terbilang (cth. Enam Ratus Dua Puluh Ribu Rupiah)">
         <textarea id="invoice-description" placeholder="Uraian"></textarea>
-        <h4>Items</h4>
+        <h4>Barang</h4>
         <div id="invoice-items">
             <div class="invoice-item">
-                <input type="text" class="item-type" placeholder="Jenis Item">
-                <input type="text" class="item-quantity" placeholder="Jumlah (e.g. 25 Orang)">
-                <input type="text" class="item-price" placeholder="Harga">
+                <input type="text" class="item-type" placeholder="Jenis Barang (cth. Konsumsi Peserta)">
+                <input type="text" class="item-quantity" placeholder="Jumlah Barang (cth. 25 Orang)">
+                <input type="text" class="item-price" placeholder="Harga Barang (cth. 25.000,-)">
                 <input type="text" class="item-total" placeholder="Total">
             </div>
         </div>
-        <button id="add-invoice-item">Add Item</button>
+        <button id="add-invoice-item">Tambahkan Barang</button>
         <input type="text" id="invoice-total" placeholder="Total Invoice">
         <input type="text" id="invoice-recipient-name" placeholder="Nama Penerima">
         <input type="text" id="invoice-recipient-address" placeholder="Alamat Penerima">
@@ -49,8 +49,12 @@
         <button id="generate-kuitansi-btn">Generate Kuitansi</button>
     </div>
     <div id="notulensi-details" style="display: none;">
-        <!-- Add content for the other details section here -->
-        <p>This is the other details section. Add your content here.</p>
+        <input type="text" id="notulensi-number" placeholder="Nomor Notulensi">
+        <input type="text" id="notulensi-date" placeholder="Tanggal Notulensi">
+        <input type="text" id="notulensi-location" placeholder="Lokasi Notulensi">
+        <input type="text" id="notulensi-participants" placeholder="Peserta Notulensi">
+        <input type="text" id="notulensi-agenda" placeholder="Agenda Notulensi">
+        <p>This is the notulensi details.</p>
     </div>
 </div>
 
