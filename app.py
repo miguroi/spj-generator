@@ -92,7 +92,14 @@ def process_files(files, template_name, date):
     for i, (file, file_type, caption) in enumerate(zip(files, file_types, captions + [None] * len(files))):
         try:
             logger.info(f"Processing file {i+1}: {file.filename}, Type: {file_type}")
-            file_content = file.read()
+            
+            # If it's the invoice file (which is stored in S3), download it first
+            if file.filename.startswith('invoice_'):
+                s3_object = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=file.filename)
+                file_content = s3_object['Body'].read()
+            else:
+                file_content = file.read()
+            
             if file_type == 'Foto':
                 logger.info(f"{file.filename} is an image")
                 if caption:
@@ -120,6 +127,7 @@ def process_files(files, template_name, date):
                 composer.append(doc)
         except Exception as e:
             logger.error(f"Error processing {file.filename}: {str(e)}")
+            logger.exception("Full traceback:")
             continue
     
     output_filename = f'SPJ_{template_name}_{date}.docx'
@@ -182,10 +190,11 @@ def generate_spj():
         logger.info(f"Invoice generated at: {invoice_path}")
         
         # Add the generated invoice to the list of files to process
-        with open(invoice_path, 'rb') as invoice_file:
-            invoice_file_obj = io.BytesIO(invoice_file.read())
-            invoice_file_obj.name = os.path.basename(invoice_path)
-            valid_files.append(invoice_file_obj)
+        invoice_filename = os.path.basename(invoice_path)
+        invoice_file_obj = type('', (), {})()
+        invoice_file_obj.filename = invoice_filename
+        valid_files.append(invoice_file_obj)
+        file_types.append('Dokumen')  # Assuming invoice is always a document
         
         logger.info(f"Total files to process (including invoice): {len(valid_files)}")
         
