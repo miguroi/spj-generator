@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,41 +7,36 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>SPJ Generator</h1>
-        <h2>Asisten Otomatis untuk Membuat SPJ</h2>
-        
-        <form id="spj-form">
-            <div class="form-group">
-                <label for="nama-acara">Nama acara:</label>
-                <input type="text" id="nama-acara" required>
-            </div>
-
-            <div class="form-group">
-                <label for="tanggal-acara">Tanggal Acara:</label>
-                <input type="date" id="tanggal-acara" required>
-            </div>
-
-            <h3>Tambah komponen SPJ:</h3>
-            <div class="component-buttons">
-                <button type="button" class="component-btn" data-type="Kuitansi">Kuitansi</button>
-                <button type="button" class="component-btn" data-type="Cover">Cover</button>
-                <button type="button" class="component-btn" data-type="Bukti penerimaan">Bukti penerimaan</button>
-                <button type="button" class="component-btn" data-type="Dokumentasi">Dokumentasi</button>
-                <button type="button" class="component-btn" data-type="Nota">Nota</button>
-                <button type="button" class="component-btn" data-type="Daftar Hadir">Daftar Hadir</button>
-                <button type="button" class="component-btn" data-type="File PDF">File PDF</button>
-                <button type="button" class="component-btn" data-type="File Gambar">File Gambar</button>
-                <button type="button" class="component-btn" data-type="File Word">File Word</button>
-            </div>
-
-            <div id="components-list"></div>
-
-            <button type="submit" id="generate-spj-btn">Generate SPJ</button>
-        </form>
+    <h1>SPJ Generator</h1>
+    <h2>Asisten Otomatis untuk Membuat SPJ</h2>
+    
+    <div id="template-form">
+        <label for="template-name">Nama template:</label>
+        <input type="text" id="template-name" required>
     </div>
 
+    <div id="date-form">
+        <label for="date">Tanggal Acara:</label>
+        <input type="date" id="date" required>
+    </div>
+
+    <h3>Daftar Komponen</h3>
+    <div id="components-list"></div>
+
+    <div id="add-component-form">
+        <input type="text" id="new-component-name" placeholder="Nama Komponen">
+        <select id="new-component-type">
+            <option value="Foto">Foto</option>
+            <option value="Dokumen">Dokumen</option>
+            <option value="PDF">PDF</option>
+        </select>
+        <button id="add-component-btn">Tambah komponen</button>
+    </div>
+
+    <button id="generate-spj-btn">Generate SPJ</button>
+
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/plugins/multi-drag/MultiDrag.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
