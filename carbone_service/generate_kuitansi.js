@@ -1,19 +1,18 @@
 const carbone = require('carbone');
 const fs = require('fs');
+const path = require('path');
 
 const generateKuitansi = (data, callback) => {
-  const templatePath = '../KUITANSI_FINAL.docx';  // Adjust this path as needed
+  const templatePath = path.join(__dirname, 'kuitansi_template.docx');
   
   carbone.render(templatePath, data, (err, result) => {
     if (err) {
-      console.error(err);
       return callback(err);
     }
     
-    const outputPath = `../temp_kuitansi_${data.nomor}.docx`;
+    const outputPath = path.join(__dirname, `kuitansi_${data.nomor}.docx`);
     fs.writeFile(outputPath, result, (err) => {
       if (err) {
-        console.error(err);
         return callback(err);
       }
       callback(null, outputPath);
@@ -21,12 +20,19 @@ const generateKuitansi = (data, callback) => {
   });
 };
 
-process.on('message', (data) => {
+// Read data from stdin
+let inputData = '';
+process.stdin.on('data', (chunk) => {
+  inputData += chunk;
+});
+
+process.stdin.on('end', () => {
+  const data = JSON.parse(inputData);
   generateKuitansi(data, (err, outputPath) => {
     if (err) {
-      process.send({ error: err.message });
+      console.log(JSON.stringify({ error: err.message }));
     } else {
-      process.send({ success: true, file: outputPath });
+      console.log(JSON.stringify({ success: true, file: outputPath }));
     }
   });
 });

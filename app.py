@@ -1,210 +1,101 @@
 import os
 from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
-from docx import Document
-from docx.shared import Inches
-from docxcompose.composer import Composer
-from pdf2docx import Converter
-import io
-import boto3
-from botocore.exceptions import ClientError
-from PIL import Image
-import tempfile
 import logging
-from docx.shared import Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-import carbone
+import json
+import base64
+import subprocess
 
-app = Flask(__name__)
-
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
-
-if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME]):
-    print("Warning: One or more required environment variables are missing.")
-
-# S3 configuration
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
-s3_bucket_name=S3_BUCKET_NAME
-
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'pdf'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def is_image(file_content):
-    try:
-        Image.open(io.BytesIO(file_content))
-        return True
-    except IOError:
-        return False
-
-def is_pdf(filename):
-    return filename.lower().endswith('.pdf')
-
-def convert_pdf_to_docx(pdf_content):
-    try:
-        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_temp:
-            pdf_temp.write(pdf_content)
-            pdf_temp_path = pdf_temp.name
-
-        docx_temp = tempfile.NamedTemporaryFile(suffix='.docx', delete=False)
-        docx_temp_path = docx_temp.name
-        docx_temp.close()
-
-        # Convert PDF to DOCX
-        cv = Converter(pdf_temp_path)
-        cv.convert(docx_temp_path)
-        cv.close()
-
-        # Read the converted DOCX
-        with open(docx_temp_path, 'rb') as docx_file:
-            docx_content = docx_file.read()
-
-        # Clean up temporary files
-        os.unlink(pdf_temp_path)
-        os.unlink(docx_temp_path)
-
-        return docx_content
-    except Exception as e:
-        logger.error(f"Error converting PDF to DOCX: {str(e)}")
-        return None
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def process_files(files, template_name, date):
-    merged_doc = Document()
-    composer = Composer(merged_doc)
-    
-    file_types = request.form.getlist('file_types')
-    captions = request.form.getlist('captions')
-    
-    for file, file_type, caption in zip(files, file_types, captions + [None] * len(files)):
-        try:
-            logger.debug(f"Processing file: {file.filename}")
-            file_content = file.read()
-            if file_type == 'Foto':
-                logger.debug(f"{file.filename} is an image")
-                if caption:
-                    para = merged_doc.add_paragraph()
-                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    run = para.add_run(caption)
-                    run.bold = True
-                    run.font.size = Pt(12)
-                pil_image = Image.open(io.BytesIO(file_content))
-                img_stream = io.BytesIO()
-                pil_image.save(img_stream, format=pil_image.format)
-                img_stream.seek(0)
-                merged_doc.add_picture(img_stream, width=Inches(6))  # Increased width for better visibility
-            elif file_type == 'PDF':
-                logger.debug(f"{file.filename} is a PDF")
-                docx_content = convert_pdf_to_docx(file_content)
-                if docx_content is None:
-                    logger.error(f"PDF conversion failed for {file.filename}")
-                    continue
-                doc = Document(io.BytesIO(docx_content))
-                composer.append(doc)
-            else:
-                logger.debug(f"{file.filename} is a document")
-                doc = Document(io.BytesIO(file_content))
-                composer.append(doc)
-        except Exception as e:
-            logger.error(f"Error processing {file.filename}: {str(e)}")
-            continue
-    
-    output_filename = f'SPJ_{template_name}_{date}.docx'
-    output_stream = io.BytesIO()
-    composer.save(output_stream)
-    output_stream.seek(0)
-    
-    # Upload to S3
-    try:
-        s3_client.upload_fileobj(output_stream, S3_BUCKET_NAME, output_filename)
-    except Exception as e:
-        logger.error(f"Error uploading to S3: {str(e)}")
-        raise
-    
-    return output_filename
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+components = []
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/generate', methods=['POST'])
-def generate_spj():
-    template_name = request.form.get('templateName')
-    date = request.form.get('tanggalAcara')
-    files = request.files.getlist('files')
+@app.route('/add-component', methods=['POST'])
+def add_component():
+    new_component = request.json
+    logger.debug(f"Adding new component: {new_component}")
     
-    if not template_name or not date or not files:
-        return jsonify({'error': 'Missing required data'}), 400
+    if 'file' in new_component and new_component['file']:
+        file_data = base64.b64decode(new_component['file'].split(',')[1])
+        filename = secure_filename(new_component['fileName'])
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        with open(filepath, 'wb') as f:
+            f.write(file_data)
+        new_component['file'] = filepath
     
-    valid_files = [f for f in files if f and allowed_file(f.filename)]
-    
-    if not valid_files:
-        return jsonify({'error': 'No valid files to process'}), 400
-    
-    try:
-        merged_filename = process_files(valid_files, template_name, date)
-        return jsonify({'success': True, 'file': merged_filename})
-    except Exception as e:
-        print(f"Error processing files: {str(e)}")  # line for debugging
-        return jsonify({'error': str(e)}), 500
+    components.append(new_component)
+    return jsonify({'success': True})
 
-@app.route('/download/<filename>')
-def download_file(filename):
-    try:
-        file_obj = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
-        return send_file(
-            io.BytesIO(file_obj['Body'].read()),
-            as_attachment=True,
-            download_name=filename,
-            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        )
-    except ClientError as e:
-        return str(e), 404
+@app.route('/get-components', methods=['GET'])
+def get_components():
+    logger.debug(f"Getting components: {components}")
+    return jsonify(components)
+
+@app.route('/reorder-components', methods=['POST'])
+def reorder_components():
+    data = request.json
+    src_index = data['srcIndex']
+    dest_index = data['destIndex']
+    
+    global components
+    component = components.pop(src_index)
+    components.insert(dest_index, component)
+    
+    return jsonify({'success': True})
 
 @app.route('/generate-kuitansi', methods=['POST'])
 def generate_kuitansi():
     data = request.json
+    logger.debug("Received kuitansi data:", data)
     
-    try:
-        # Run the Node.js script
-        process = subprocess.Popen(['node', 'carbone_service/generate_kuitansi.js'],
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        
-        # Send data to the Node.js script
-        stdout, stderr = process.communicate(input=json.dumps(data).encode())
-        
-        if stderr:
-            raise Exception(stderr.decode())
-        
-        result = json.loads(stdout.decode())
-        
-        if 'error' in result:
-            raise Exception(result['error'])
-        
-        output_filename = f'Kuitansi_{data["nomor"]}.docx'
-        temp_file_path = result['file']
-        
-        # Upload to S3
-        s3_client.upload_file(temp_file_path, S3_BUCKET_NAME, output_filename)
-        
-        # Remove the temporary file
-        os.unlink(temp_file_path)
-        
-        return jsonify({'success': True, 'file': output_filename})
-    except Exception as e:
-        logger.error(f"Error generating kuitansi: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    # Call the Node.js script to generate kuitansi
+    script_path = os.path.join('carbone_service', 'generate_kuitansi.js')
+    process = subprocess.Popen(['node', script_path], 
+                               stdin=subprocess.PIPE, 
+                               stdout=subprocess.PIPE, 
+                               stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate(input=json.dumps(data).encode())
+    
+    if process.returncode != 0:
+        logger.error(f"Error generating kuitansi: {stderr.decode()}")
+        return jsonify({'success': False, 'error': 'Failed to generate kuitansi'})
+    
+    result = json.loads(stdout.decode())
+    if 'error' in result:
+        return jsonify({'success': False, 'error': result['error']})
+    
+    # Assuming the Node.js script returns the path to the generated file
+    file_path = result['file']
+    file_name = os.path.basename(file_path)
+    
+    # Add the generated kuitansi as a new component
+    new_component = {
+        'name': f'Kuitansi {data["nomor"]}',
+        'type': 'Kuitansi',
+        'file': file_path
+    }
+    components.append(new_component)
+    
+    return jsonify({'success': True, 'file': file_name})
+
+# Add a new route to download the generated kuitansi
+@app.route('/download-kuitansi/<filename>')
+def download_kuitansi(filename):
+    directory = os.path.abspath(os.path.dirname(__file__))
+    return send_file(os.path.join(directory, filename), as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

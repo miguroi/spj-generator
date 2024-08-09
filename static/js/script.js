@@ -1,46 +1,44 @@
 let components = [];
 
 function updateComponentsList() {
-    const list = document.getElementById('components-list');
-    list.innerHTML = '';
-    components.forEach((component, index) => {
-        const div = document.createElement('div');
-        div.className = 'component-item';
-        div.draggable = true;
-        div.setAttribute('data-index', index);
-        
-        let html = `
-            <span>${component.name} (${component.type})</span>
-            <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
-            <span class="file-name">${component.file ? component.file.name : 'No file selected'}</span>
-        `;
-        
-        if (component.type === 'Foto') {
-            html += `
-                <input type="text" placeholder="Image Caption" value="${component.caption || ''}" onchange="handleCaptionChange(event, ${index})">
-            `;
-        }
-        
-        html += `
-            <button onclick="removeComponent(${index})">Hapus</button>
-        `;
-        
-        div.innerHTML = html;
-        
-        div.addEventListener('dragstart', handleDragStart);
-        div.addEventListener('dragover', handleDragOver);
-        div.addEventListener('drop', handleDrop);
-        div.addEventListener('dragend', handleDragEnd);
-
-        list.appendChild(div);
-
-        if (component.file) {
-            const fileInput = div.querySelector('input[type="file"]');
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(component.file);
-            fileInput.files = dataTransfer.files;
-        }
-    });
+    fetch('/get-components')
+        .then(response => response.json())
+        .then(data => {
+            components = data;
+            const list = document.getElementById('components-list');
+            list.innerHTML = '';
+            components.forEach((component, index) => {
+                const div = document.createElement('div');
+                div.className = 'component-item';
+                div.draggable = true;
+                div.setAttribute('data-index', index);
+                
+                let html = `
+                    <span>${component.name} (${component.type})</span>
+                `;
+                
+                if (component.type !== 'Kuitansi') {
+                    html += `
+                        <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
+                        <span class="file-name">${component.file ? 'File selected' : 'No file selected'}</span>
+                    `;
+                }
+                
+                html += `
+                    <button onclick="removeComponent(${index})">Hapus</button>
+                `;
+                
+                div.innerHTML = html;
+                
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragover', handleDragOver);
+                div.addEventListener('drop', handleDrop);
+                div.addEventListener('dragend', handleDragEnd);
+                
+                list.appendChild(div);
+            });
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 function handleCaptionChange(event, index) {
@@ -60,11 +58,30 @@ function getAcceptAttribute(type) {
     }
 }
 
+console.log("script.js loaded");
+
 function addComponent(type) {
+    console.log(`Adding ${type} component`);
     const name = prompt(`Enter name for the ${type} component:`);
     if (name) {
-        components.push({ name, type, file: null });
-        updateComponentsList();
+        const component = { name, type, file: null };
+        
+        fetch('/add-component', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(component)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateComponentsList();
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        })
+        .catch(error => console.error('Error:', error));
     }
 }
 
@@ -76,8 +93,30 @@ function removeComponent(index) {
 function handleFileUpload(event, index) {
     const file = event.target.files[0];
     if (file) {
-        components[index].file = file;
-        updateComponentsList();
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const component = components[index];
+            component.file = e.target.result;
+            component.fileName = file.name;
+            
+            fetch('/add-component', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(component)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateComponentsList();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        };
+        reader.readAsDataURL(file);
     }
 }
 
@@ -105,10 +144,23 @@ function handleDrop(e) {
     if (dragSrcEl != this) {
         const srcIndex = parseInt(dragSrcEl.getAttribute('data-index'));
         const destIndex = parseInt(this.getAttribute('data-index'));
-        const temp = components[srcIndex];
-        components[srcIndex] = components[destIndex];
-        components[destIndex] = temp;
-        updateComponentsList();
+        
+        fetch('/reorder-components', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ srcIndex, destIndex })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateComponentsList();
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        })
+        .catch(error => console.error('Error:', error));
     }
     
     return false;
@@ -118,60 +170,14 @@ function handleDragEnd(e) {
     this.style.opacity = '1';
 }
 
-function generateSPJ() {
-    const templateName = document.getElementById('template-name').value;
-    const tanggalAcara = document.getElementById('date').value;
-
-    if (!templateName) {
-        alert('Please enter template name!');
-        return;
-    }
-    if (!tanggalAcara) {
-        alert('Please enter event date!');
-        return;
-    }
-    if (components.length === 0) {
-        alert('Please add at least one component!');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('templateName', templateName);
-    formData.append('tanggalAcara', tanggalAcara);
-
-    components.forEach((component, index) => {
-        if (component.file) {
-            formData.append('files', component.file);
-            formData.append(`file_types`, component.type);
-            if (component.caption) {
-                formData.append(`captions`, component.caption);
-            }
-        }
-    });
-
-    fetch('/generate', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = `/download/${data.file}`;
-        } else {
-            alert(`Error: ${data.error}`);
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-
 function generateKuitansi() {
+    console.log('Generating kuitansi...');
     const kuitansiData = {
         nomor: document.getElementById('kuitansi-nomor').value,
         pengirim: document.getElementById('kuitansi-pengirim').value,
         jumlah: document.getElementById('kuitansi-jumlah').value,
         terbilang: document.getElementById('kuitansi-terbilang').value,
         uraian: document.getElementById('kuitansi-uraian').value,
-        // Add more fields as necessary
     };
 
     fetch('/generate-kuitansi', {
@@ -184,7 +190,10 @@ function generateKuitansi() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.href = `/download/${data.file}`;
+            alert('Kuitansi has been generated and added as a component');
+            // Trigger download
+            window.location.href = `/download-kuitansi/${data.file}`;
+            updateComponentsList();
         } else {
             alert(`Error: ${data.error}`);
         }
@@ -192,6 +201,15 @@ function generateKuitansi() {
     .catch(error => console.error('Error:', error));
 }
 
-document.getElementById('generate-spj-btn').addEventListener('click', generateSPJ);
-
-updateComponentsList();
+// Add event listeners after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', (event) => {
+    console.log("Adding event listeners");
+    
+    document.getElementById('generate-kuitansi-btn').addEventListener('click', generateKuitansi);
+    
+    document.querySelectorAll('.add-btn').forEach(btn => {
+        btn.addEventListener('click', () => addComponent(btn.textContent.trim()));
+    });
+    
+    updateComponentsList();
+});

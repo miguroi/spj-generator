@@ -1,12 +1,12 @@
 body {
-    font-family: Verdana, sans-serif;
+    font-family: Arial, sans-serif;
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
 }
 
 h1, h2, h3 {
-    text-align: center;
+    color: #333;
 }
 
 #template-form, #date-form, #add-component-form, #kuitansi-form {
@@ -14,7 +14,6 @@ h1, h2, h3 {
 }
 
 input, select, button, textarea {
-    font-family: Verdana, sans-serif;
     margin: 5px 0;
     padding: 5px;
     width: 100%;
@@ -22,7 +21,7 @@ input, select, button, textarea {
 }
 
 button {
-    background-color: black;
+    background-color: #4CAF50;
     color: white;
     border: none;
     cursor: pointer;
@@ -44,10 +43,6 @@ button:hover {
     cursor: move;
 }
 
-.component-item button {
-    margin-left: 10px;
-}
-
 .add-btn {
     color: white;
     border: none;
@@ -57,13 +52,31 @@ button:hover {
     width: auto;
 }
 
-.add-btn.pdf { background-color: red; }
-.add-btn.image { background-color: blue; }
-.add-btn.doc { background-color: green; }
+.add-btn.pdf { background-color: #f44336; }
+.add-btn.image { background-color: #2196F3; }
+.add-btn.doc { background-color: #4CAF50; }
 
 #components-list {
     min-height: 100px;
     border: 2px dashed #ccc;
     padding: 10px;
     margin-bottom: 20px;
+}
+
+#component-name {
+    width: calc(100% - 10px);
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+#add-component-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.add-btn {
+    flex: 1;
+    min-width: 100px;
 }

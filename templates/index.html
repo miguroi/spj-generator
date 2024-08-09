@@ -23,6 +23,7 @@
     <h3>Daftar Komponen</h3>
     <div id="components-list"></div>
 
+    <h3>Tambah Komponen</h3>
     <div id="add-component-form">
         <button class="add-btn pdf" onclick="addComponent('PDF')">PDF</button>
         <button class="add-btn image" onclick="addComponent('Foto')">Foto</button>
@@ -35,13 +36,19 @@
     <div id="kuitansi-form">
         <input type="text" id="kuitansi-nomor" placeholder="Nomor">
         <input type="text" id="kuitansi-pengirim" placeholder="Pengirim">
-        <input type="text" id="kuitansi-jumlah" placeholder="Jumlah">
+        <input type="number" id="kuitansi-jumlah" placeholder="Jumlah">
         <input type="text" id="kuitansi-terbilang" placeholder="Terbilang">
         <textarea id="kuitansi-uraian" placeholder="Uraian"></textarea>
-        <!-- Add more fields as necessary -->
-        <button onclick="generateKuitansi()">Generate Kuitansi</button>
+        <button id="generate-kuitansi-btn">Generate Kuitansi</button>
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        console.log("Script loaded");
+        document.addEventListener('DOMContentLoaded', (event) => {
+            console.log("DOM fully loaded and parsed");
+        });
+    </script>
+
 </body>
 </html>
