@@ -5,9 +5,8 @@ const path = require('path');
 console.log('Starting invoice generation');
 
 function generateInvoice(data, callback) {
-  console.log('Received data:', data);
+  console.log('Received data:', JSON.stringify(data, null, 2));
 
-  // Ensure the invoices directory exists
   const invoicesDir = path.join(__dirname, 'invoices');
   if (!fs.existsSync(invoicesDir)) {
     console.log('Creating invoices directory');
@@ -36,17 +35,15 @@ function generateInvoice(data, callback) {
         console.error('Error writing file:', err);
         return callback(err);
       }
-      console.log('Invoice generated successfully at:', outputPath);
+      console.log('Invoice generated successfully');
+      console.log('OUTPUT_PATH:' + outputPath);
       callback(null, outputPath);
     });
   });
 }
 
-// Listen for arguments from Python
-const args = process.argv.slice(2);
-const jsonData = args[0];
+const jsonData = process.argv[2];
 
-console.log('Parsing JSON data');
 try {
   const data = JSON.parse(jsonData);
   generateInvoice(data, (err, outputPath) => {
@@ -54,7 +51,6 @@ try {
       console.error('Error generating invoice:', err);
       process.exit(1);
     }
-    console.log(outputPath);
     process.exit(0);
   });
 } catch (error) {

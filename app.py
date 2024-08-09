@@ -13,8 +13,9 @@ import tempfile
 import logging
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-import json
 import subprocess
+import json
+import re
 
 app = Flask(__name__)
 
@@ -136,10 +137,14 @@ def process_files(files, template_name, date):
 def generate_invoice(data):
     try:
         json_data = json.dumps(data)
-        print(f"Attempting to generate invoice with data: {json_data}")
         result = subprocess.run(['/app/.heroku/node/bin/node', 'generate_invoice.js', json_data], capture_output=True, text=True, check=True)
-        print(f"Node.js script output: {result.stdout}")
-        return result.stdout.strip()
+        
+        # Extract the output path from the Node.js script output
+        output_path_match = re.search(r'OUTPUT_PATH:(.+)', result.stdout)
+        if output_path_match:
+            return output_path_match.group(1).strip()
+        else:
+            raise Exception("Failed to extract output path from Node.js script")
     except subprocess.CalledProcessError as e:
         print(f"Error running Node.js script: {e}")
         print(f"Script error output: {e.stderr}")
