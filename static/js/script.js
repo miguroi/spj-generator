@@ -41,10 +41,6 @@ function updateComponentsList() {
         .catch(error => console.error('Error:', error));
 }
 
-function handleCaptionChange(event, index) {
-    components[index].caption = event.target.value;
-}
-
 function getAcceptAttribute(type) {
     switch (type) {
         case 'Foto':
@@ -57,8 +53,6 @@ function getAcceptAttribute(type) {
             return '.png,.jpg,.jpeg,.gif,.doc,.docx,.pdf';
     }
 }
-
-console.log("script.js loaded");
 
 function addComponent(type) {
     console.log(`Adding ${type} component`);
@@ -86,8 +80,22 @@ function addComponent(type) {
 }
 
 function removeComponent(index) {
-    components.splice(index, 1);
-    updateComponentsList();
+    fetch('/remove-component', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ index })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateComponentsList();
+        } else {
+            alert(`Error: ${data.error}`);
+        }
+    })
+    .catch(error => console.error('Error:', error));
 }
 
 function handleFileUpload(event, index) {
@@ -191,9 +199,37 @@ function generateKuitansi() {
     .then(data => {
         if (data.success) {
             alert('Kuitansi has been generated and added as a component');
-            // Trigger download
             window.location.href = `/download-kuitansi/${data.file}`;
             updateComponentsList();
+        } else {
+            alert(`Error: ${data.error}`);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function generateSPJ() {
+    const templateName = document.getElementById('template-name').value;
+    const tanggalAcara = document.getElementById('date').value;
+
+    if (!templateName || !tanggalAcara) {
+        alert('Please enter template name and event date!');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('templateName', templateName);
+    formData.append('tanggalAcara', tanggalAcara);
+
+    fetch('/generate-spj', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('SPJ has been generated successfully');
+            window.location.href = `/download-spj/${data.file}`;
         } else {
             alert(`Error: ${data.error}`);
         }
@@ -206,6 +242,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     console.log("Adding event listeners");
     
     document.getElementById('generate-kuitansi-btn').addEventListener('click', generateKuitansi);
+    document.getElementById('generate-spj-btn').addEventListener('click', generateSPJ);
     
     document.querySelectorAll('.add-btn').forEach(btn => {
         btn.addEventListener('click', () => addComponent(btn.textContent.trim()));
@@ -213,3 +250,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     
     updateComponentsList();
 });
+
+// Initial call to update components list
+updateComponentsList();

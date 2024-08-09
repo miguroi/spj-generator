@@ -9,15 +9,15 @@
 <body>
     <h1>SPJ Generator</h1>
     <h2>Asisten Otomatis untuk Membuat SPJ</h2>
-
+    
     <div id="template-form">
         <label for="template-name">Nama template:</label>
-        <input type="text" id="template-name">
+        <input type="text" id="template-name" required>
     </div>
 
     <div id="date-form">
         <label for="date">Tanggal Acara:</label>
-        <input type="date" id="date">
+        <input type="date" id="date" required>
     </div>
 
     <h3>Daftar Komponen</h3>
@@ -34,7 +34,7 @@
 
     <h3>Generate Kuitansi</h3>
     <div id="kuitansi-form">
-        <input type="text" id="kuitansi-nomor" placeholder="Nomor">
+        <input type="text" id="kuitansi-nomor" placeholder="Nomor Kuitansi">
         <input type="text" id="kuitansi-pengirim" placeholder="Pengirim">
         <input type="number" id="kuitansi-jumlah" placeholder="Jumlah">
         <input type="text" id="kuitansi-terbilang" placeholder="Terbilang">
@@ -43,12 +43,5 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    <script>
-        console.log("Script loaded");
-        document.addEventListener('DOMContentLoaded', (event) => {
-            console.log("DOM fully loaded and parsed");
-        });
-    </script>
-
 </body>
 </html>

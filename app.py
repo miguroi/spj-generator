@@ -5,6 +5,8 @@ import logging
 import json
 import base64
 import subprocess
+from docx import Document
+from docx.shared import Inches
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 
@@ -61,7 +63,6 @@ def generate_kuitansi():
     data = request.json
     logger.debug("Received kuitansi data:", data)
     
-    # Call the Node.js script to generate kuitansi
     script_path = os.path.join('carbone_service', 'generate_kuitansi.js')
     process = subprocess.Popen(['node', script_path], 
                                stdin=subprocess.PIPE, 
@@ -77,11 +78,9 @@ def generate_kuitansi():
     if 'error' in result:
         return jsonify({'success': False, 'error': result['error']})
     
-    # Assuming the Node.js script returns the path to the generated file
     file_path = result['file']
     file_name = os.path.basename(file_path)
     
-    # Add the generated kuitansi as a new component
     new_component = {
         'name': f'Kuitansi {data["nomor"]}',
         'type': 'Kuitansi',
@@ -91,11 +90,42 @@ def generate_kuitansi():
     
     return jsonify({'success': True, 'file': file_name})
 
-# Add a new route to download the generated kuitansi
 @app.route('/download-kuitansi/<filename>')
 def download_kuitansi(filename):
     directory = os.path.abspath(os.path.dirname(__file__))
     return send_file(os.path.join(directory, filename), as_attachment=True)
+
+@app.route('/generate-spj', methods=['POST'])
+def generate_spj():
+    template_name = request.form.get('templateName')
+    date = request.form.get('tanggalAcara')
+    
+    if not template_name or not date:
+        return jsonify({'error': 'Missing required data'}), 400
+    
+    doc = Document()
+    doc.add_heading(f'SPJ: {template_name}', 0)
+    doc.add_paragraph(f'Tanggal Acara: {date}')
+    
+    for component in components:
+        doc.add_heading(component['name'], level=2)
+        if component['type'] == 'Kuitansi':
+            doc.add_paragraph(f"Kuitansi: {component['name']}")
+        elif component['type'] in ['Foto', 'PDF', 'Dokumen']:
+            if os.path.exists(component['file']):
+                doc.add_picture(component['file'], width=Inches(6))
+            else:
+                doc.add_paragraph(f"File not found: {component['file']}")
+    
+    output_filename = f'SPJ_{template_name}_{date}.docx'
+    output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
+    doc.save(output_path)
+    
+    return jsonify({'success': True, 'file': output_filename})
+
+@app.route('/download-spj/<filename>')
+def download_spj(filename):
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
