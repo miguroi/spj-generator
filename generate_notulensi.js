@@ -13,7 +13,7 @@ function generateNotulensi(data, callback) {
       fs.mkdirSync(notulensiDir, { recursive: true });
     }
   
-    const templatePath = path.join(__dirname, 'NOtulensi_FINAL.docx');
+    const templatePath = path.join(__dirname, 'NOTULEN_FINAL.docx');
     console.log('Template path:', templatePath);
   
     if (!fs.existsSync(templatePath)) {
@@ -48,7 +48,7 @@ function generateNotulensi(data, callback) {
     const data = JSON.parse(jsonData);
     generateNotulensi(data, (err, outputPath) => {
       if (err) {
-        console.error('Error generating notulensisi:', err);
+        console.error('Error generating notulensi:', err);
         process.exit(1);
       }
       process.exit(0);
