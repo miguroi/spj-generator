@@ -4,4 +4,5 @@ __pycache__
 *.pyc
 uploads/
 .env
-repopack-output.txt
+/rpack
+/path
