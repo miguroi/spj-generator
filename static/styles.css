@@ -1,56 +1,112 @@
 body {
-    font-family: Verdana, sans-serif;
-    max-width: 600px;
+    font-family: Arial, sans-serif;
+    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
+    background-color: #f0f0f0;
 }
 
-h1, h2 {
+h1, h2, h3 {
     text-align: center;
+    color: #333;
 }
 
-#template-form, #add-component-form {
+#template-form, #date-form, #add-component-form {
+    background-color: white;
+    padding: 15px;
     margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 input, select, button {
-    font-family: Verdana, sans-serif;
+    font-family: inherit;
+    font-size: 16px;
     margin: 5px 0;
-    padding: 5px;
+    padding: 8px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 button {
-    background-color: black;
+    background-color: #4CAF50;
     color: white;
     border: none;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-    opacity: 0.8;
+    background-color: #45a049;
+}
+
+#add-component-btn, #generate-spj-btn {
+    display: block;
+    width: 200px;
+    margin: 20px auto;
+}
+
+#components-list {
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .component-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
     padding: 10px;
-    background-color: #f0f0f0;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
     border-radius: 5px;
-    cursor: default;
 }
 
-.component-item.selected {
-    background-color: #e0e0ff;
+.component-item:hover {
+    background-color: #f0f0f0;
+}
+
+.component-item button {
+    width: auto;
+    padding: 5px 10px;
+    background-color: #f44336;
+}
+
+.component-item button:hover {
+    background-color: #d32f2f;
 }
 
 .drag-handle {
     cursor: move;
-    padding-right: 10px;
+    padding: 5px;
+    margin-right: 10px;
+    color: #888;
+}
+
+.file-name {
+    font-size: 0.9em;
+    color: #666;
+    margin-left: 10px;
 }
 
 .sortable-ghost {
     opacity: 0.5;
     background-color: #c8ebfb;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .component-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .component-item button {
+        margin-top: 10px;
+    }
 }
