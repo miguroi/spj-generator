@@ -18,10 +18,15 @@ function updateComponentsList() {
                 `;
                 
                 if (component.type !== 'Kuitansi') {
-                    html += `
-                        <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
-                        <span class="file-name">${component.file ? 'File selected' : 'No file selected'}</span>
-                    `;
+                    if (component.file) {
+                        html += `
+                            <a href="${component.file}" target="_blank">View File</a>
+                        `;
+                    } else {
+                        html += `
+                            <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
+                        `;
+                    }
                 }
                 
                 html += `
@@ -39,6 +44,37 @@ function updateComponentsList() {
             });
         })
         .catch(error => console.error('Error:', error));
+}
+
+function handleFileUpload(event, index) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const component = components[index];
+            component.file = e.target.result;
+            component.fileName = file.name;
+            
+            fetch('/add-component', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(component)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('File uploaded successfully');
+                    updateComponentsList();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
 function getAcceptAttribute(type) {
@@ -96,36 +132,6 @@ function removeComponent(index) {
         }
     })
     .catch(error => console.error('Error:', error));
-}
-
-function handleFileUpload(event, index) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const component = components[index];
-            component.file = e.target.result;
-            component.fileName = file.name;
-            
-            fetch('/add-component', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(component)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateComponentsList();
-                } else {
-                    alert(`Error: ${data.error}`);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        };
-        reader.readAsDataURL(file);
-    }
 }
 
 let dragSrcEl = null;
