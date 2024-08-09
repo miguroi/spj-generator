@@ -238,9 +238,9 @@ function getInvoiceData() {
     };
 }
 
-function generateKuitansi() {
+function generateInvoice() {
     const invoiceData = getInvoiceData();
-    console.log('Generating Kuitansi with data:', invoiceData);
+    console.log('Generating invoice with data:', invoiceData);
     
     fetch('/generate_invoice', {
         method: 'POST',
@@ -252,36 +252,58 @@ function generateKuitansi() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Kuitansi generated successfully. Filename:', data.filename);
+            console.log('invoice generated successfully. Filename:', data.filename);
             components.push({
-                name: 'Generated Kuitansi',
+                name: 'Generated invoice',
                 type: 'Dokumen',
                 file: new File([new Blob()], data.filename, {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})
             });
             console.log('Updated components list:', components);
             updateComponentsList();
         } else {
-            console.error('Error generating Kuitansi:', data.error);
-            alert('Error generating Kuitansi: ' + data.error);
+            console.error('Error generating invoice:', data.error);
+            alert('Error generating invoice: ' + data.error);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while generating the Kuitansi. Please try again.');
+        alert('An error occurred while generating the invoice. Please try again.');
     });
 }
 
-// function toggleNotulensiDetails() {
-//     const notulensiDetails = document.getElementById('notulensi-details');
-//     const toggleBtn = document.getElementById('toggle-notulensi-details');
-//     if (notulensiDetails.style.display === 'none') {
-//         notulensiDetails.style.display = 'block';
-//         // toggleBtn.textContent = 'Sembunyikan Detail Notulensi';
-//     } else {
-//         notulensiDetails.style.display = 'none';
-//         // toggleBtn.textContent = 'Tampilkan Detail Notulensi';
-//     }
-// }
+// START
+function toggleinvoiceDetails() {
+    const invoiceDetails = document.getElementById('invoice-details');
+    const toggleBtn = document.getElementById('toggle-invoice-details');
+    if (invoiceDetails.style.display === 'none') {
+        invoiceDetails.style.display = 'block';
+        // toggleBtn.textContent = 'Sembunyikan Detail Invoice';
+    } else {
+        invoiceDetails.style.display = 'none';
+        // toggleBtn.textContent = 'Tampilkan Detail Invoice';
+    }
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('toggle-invoice-details').addEventListener('click', toggleInvoiceDetails);
+    document.getElementById('generate-invoice-btn').addEventListener('click', generateInvoice);
+    document.getElementById('add-peserta-btn').addEventListener('click', addPeserta);
+});
+
+// END
+
+function toggleNotulensiDetails() {
+    const notulensiDetails = document.getElementById('notulensi-details');
+    const toggleBtn = document.getElementById('toggle-notulensi-details');
+    if (notulensiDetails.style.display === 'none') {
+        notulensiDetails.style.display = 'block';
+        // toggleBtn.textContent = 'Sembunyikan Detail Notulensi';
+    } else {
+        notulensiDetails.style.display = 'none';
+        // toggleBtn.textContent = 'Tampilkan Detail Notulensi';
+    }
+}
 
 function addPeserta() {
     const pesertaList = document.getElementById('notulensi-peserta-list');
@@ -350,12 +372,7 @@ function generateNotulensi() {
     });
 }
 
-// Add event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('toggle-notulensi-details').addEventListener('click', toggleNotulensiDetails);
-    document.getElementById('generate-notulensi-btn').addEventListener('click', generateNotulensi);
-    document.getElementById('add-peserta-btn').addEventListener('click', addPeserta);
-});
+
 
 function generateSPJ() {
     console.log('Generating SPJ');
