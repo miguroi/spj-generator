@@ -8,28 +8,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const invoiceDetails = document.getElementById('invoice-details');
     const notulensiDetails = document.getElementById('notulensi-details');
 
-    function toggleForm(formElement, button) {
-        if (formElement.style.display === 'none' || formElement.style.display === '') {
-            formElement.style.display = 'block';
-            button.classList.add('active');
-        } else {
-            formElement.style.display = 'none';
-            button.classList.remove('active');
+    function toggleForms(event) {
+        const clickedBtn = event.target;
+        const invoiceDetails = document.getElementById('invoice-details');
+        const notulensiDetails = document.getElementById('notulensi-details');
+        const invoiceBtn = document.getElementById('toggle-invoice-details');
+        const notulensiBtn = document.getElementById('toggle-notulensi-details');
+
+        if (clickedBtn === invoiceBtn) {
+            if (invoiceDetails.style.display === 'none') {
+                invoiceDetails.style.display = 'block';
+                notulensiDetails.style.display = 'none';
+                invoiceBtn.classList.add('active');
+                notulensiBtn.classList.remove('active');
+            } else {
+                invoiceDetails.style.display = 'none';
+                invoiceBtn.classList.remove('active');
+            }
+        } else if (clickedBtn === notulensiBtn) {
+            if (notulensiDetails.style.display === 'none') {
+                notulensiDetails.style.display = 'block';
+                invoiceDetails.style.display = 'none';
+                notulensiBtn.classList.add('active');
+                invoiceBtn.classList.remove('active');
+            } else {
+                notulensiDetails.style.display = 'none';
+                notulensiBtn.classList.remove('active');
+            }
         }
     }
 
     if (toggleInvoiceBtn && toggleNotulensiBtn) {
-        toggleInvoiceBtn.addEventListener('click', function() {
-            toggleForm(invoiceDetails, toggleInvoiceBtn);
-        });
-
-        toggleNotulensiBtn.addEventListener('click', function() {
-            toggleForm(notulensiDetails, toggleNotulensiBtn);
-        });
+        toggleInvoiceBtn.addEventListener('click', toggleForms);
+        toggleNotulensiBtn.addEventListener('click', toggleForms);
     } else {
         console.error('Toggle buttons not found');
     }
-    
+
     initializeApp();
 });
 
