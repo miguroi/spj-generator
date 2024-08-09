@@ -1,4 +1,3 @@
-// Use an IIFE to avoid global variables
 (function() {
     let components = [];
     let sortable;
@@ -402,10 +401,10 @@
         });
     }
 
-    // Expose necessary functions to the global scope
     window.handleTypeChange = handleTypeChange;
     window.handleCaptionChange = handleCaptionChange;
     window.removeComponent = removeComponent;
     window.handleFileUpload = handleFileUpload;
+    window.addInvoiceItem = addInvoiceItem;
 
 })(); 
