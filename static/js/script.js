@@ -14,6 +14,21 @@ document.addEventListener('DOMContentLoaded', function() {
         generateKuitansiBtn.addEventListener('click', generateKuitansi);
     }
 
+    const toggleInvoiceDetailsBtn = document.getElementById('toggle-invoice-details');
+    const invoiceDetails = document.getElementById('invoice-details');
+
+    if (toggleInvoiceDetailsBtn) {
+        toggleInvoiceDetailsBtn.addEventListener('click', function() {
+            if (invoiceDetails.style.display === 'none') {
+                invoiceDetails.style.display = 'block';
+                toggleInvoiceDetailsBtn.textContent = 'Hide Invoice Details';
+            } else {
+                invoiceDetails.style.display = 'none';
+                toggleInvoiceDetailsBtn.textContent = 'Show Invoice Details';
+            }
+        });
+    }
+
     initializeApp();
 });
 

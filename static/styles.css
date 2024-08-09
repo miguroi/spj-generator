@@ -193,3 +193,23 @@ button:hover {
 #add-invoice-item {
     margin-bottom: 10px;
 }
+
+#toggle-invoice-details {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+#toggle-invoice-details:hover {
+    background-color: #45a049;
+}
+
+#invoice-details {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
