@@ -1,129 +1,173 @@
 import os
 from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
-import logging
-import json
-import base64
-import subprocess
 from docx import Document
 from docx.shared import Inches
+from docxcompose.composer import Composer
+from pdf2docx import Converter
+import io
 import boto3
 from botocore.exceptions import ClientError
-import io
+from PIL import Image
+import tempfile
+import logging
+from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 app = Flask(__name__)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-# AWS S3 configuration
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 
+if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME]):
+    print("Warning: One or more required environment variables are missing.")
+
+# S3 configuration
 s3_client = boto3.client(
     's3',
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
+s3_bucket_name=S3_BUCKET_NAME
 
-components = []
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'pdf'}
 
-@app.route('/add-component', methods=['POST'])
-def add_component():
-    new_component = request.json
-    app.logger.debug(f"Received new component: {new_component}")
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def is_image(file_content):
+    try:
+        Image.open(io.BytesIO(file_content))
+        return True
+    except IOError:
+        return False
+
+def is_pdf(filename):
+    return filename.lower().endswith('.pdf')
+
+def convert_pdf_to_docx(pdf_content):
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_temp:
+            pdf_temp.write(pdf_content)
+            pdf_temp_path = pdf_temp.name
+
+        docx_temp = tempfile.NamedTemporaryFile(suffix='.docx', delete=False)
+        docx_temp_path = docx_temp.name
+        docx_temp.close()
+
+        # Convert PDF to DOCX
+        cv = Converter(pdf_temp_path)
+        cv.convert(docx_temp_path)
+        cv.close()
+
+        # Read the converted DOCX
+        with open(docx_temp_path, 'rb') as docx_file:
+            docx_content = docx_file.read()
+
+        # Clean up temporary files
+        os.unlink(pdf_temp_path)
+        os.unlink(docx_temp_path)
+
+        return docx_content
+    except Exception as e:
+        logger.error(f"Error converting PDF to DOCX: {str(e)}")
+        return None
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+def process_files(files, template_name, date):
+    merged_doc = Document()
+    composer = Composer(merged_doc)
     
-    if 'file' in new_component and new_component['file']:
+    file_types = request.form.getlist('file_types')
+    captions = request.form.getlist('captions')
+    
+    for file, file_type, caption in zip(files, file_types, captions + [None] * len(files)):
         try:
-            file_data = base64.b64decode(new_component['file'].split(',')[1])
-            filename = secure_filename(new_component['fileName'])
-            
-            app.logger.debug(f"Attempting to upload file: {filename}")
-            
-            # Upload file to S3
-            s3_client.upload_fileobj(
-                io.BytesIO(file_data),
-                S3_BUCKET_NAME,
-                filename,
-                ExtraArgs={'ContentType': 'application/octet-stream'}
-            )
-            
-            new_component['file'] = f"https://{S3_BUCKET_NAME}.s3.amazonaws.com/{filename}"
-            app.logger.info(f"File uploaded to S3: {new_component['file']}")
+            logger.debug(f"Processing file: {file.filename}")
+            file_content = file.read()
+            if file_type == 'Foto':
+                logger.debug(f"{file.filename} is an image")
+                if caption:
+                    para = merged_doc.add_paragraph()
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = para.add_run(caption)
+                    run.bold = True
+                    run.font.size = Pt(12)
+                pil_image = Image.open(io.BytesIO(file_content))
+                img_stream = io.BytesIO()
+                pil_image.save(img_stream, format=pil_image.format)
+                img_stream.seek(0)
+                merged_doc.add_picture(img_stream, width=Inches(6))  # Increased width for better visibility
+            elif file_type == 'PDF':
+                logger.debug(f"{file.filename} is a PDF")
+                docx_content = convert_pdf_to_docx(file_content)
+                if docx_content is None:
+                    logger.error(f"PDF conversion failed for {file.filename}")
+                    continue
+                doc = Document(io.BytesIO(docx_content))
+                composer.append(doc)
+            else:
+                logger.debug(f"{file.filename} is a document")
+                doc = Document(io.BytesIO(file_content))
+                composer.append(doc)
         except Exception as e:
-            app.logger.error(f"Error uploading file to S3: {str(e)}")
-            return jsonify({'success': False, 'error': 'Error uploading file'}), 500
+            logger.error(f"Error processing {file.filename}: {str(e)}")
+            continue
     
-    components.append(new_component)
-    app.logger.info(f"Component added successfully: {new_component['name']} ({new_component['type']})")
-    return jsonify({'success': True})
+    output_filename = f'SPJ_{template_name}_{date}.docx'
+    output_stream = io.BytesIO()
+    composer.save(output_stream)
+    output_stream.seek(0)
+    
+    # Upload to S3
+    try:
+        s3_client.upload_fileobj(output_stream, S3_BUCKET_NAME, output_filename)
+    except Exception as e:
+        logger.error(f"Error uploading to S3: {str(e)}")
+        raise
+    
+    return output_filename
 
-@app.route('/generate-spj', methods=['POST'])
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/generate', methods=['POST'])
 def generate_spj():
     template_name = request.form.get('templateName')
     date = request.form.get('tanggalAcara')
+    files = request.files.getlist('files')
     
-    if not template_name or not date:
+    if not template_name or not date or not files:
         return jsonify({'error': 'Missing required data'}), 400
     
+    valid_files = [f for f in files if f and allowed_file(f.filename)]
+    
+    if not valid_files:
+        return jsonify({'error': 'No valid files to process'}), 400
+    
     try:
-        doc = Document()
-        doc.add_heading(f'SPJ: {template_name}', 0)
-        doc.add_paragraph(f'Tanggal Acara: {date}')
-        
-        for component in components:
-            doc.add_heading(component['name'], level=2)
-            if component['type'] == 'Kuitansi':
-                doc.add_paragraph(f"Kuitansi: {component['name']}")
-            elif component['type'] in ['Foto', 'PDF', 'Dokumen']:
-                if component['file']:
-                    # Download file from S3
-                    file_name = component['file'].split('/')[-1]
-                    s3_client.download_file(S3_BUCKET_NAME, file_name, file_name)
-                    doc.add_picture(file_name, width=Inches(6))
-                    os.remove(file_name)  # Remove the temporary file
-                else:
-                    doc.add_paragraph(f"File not found for: {component['name']}")
-        
-        output_filename = f'SPJ_{template_name}_{date}.docx'
-        doc.save(output_filename)
-        
-        # Upload the generated SPJ to S3
-        with open(output_filename, 'rb') as spj_file:
-            s3_client.upload_fileobj(spj_file, S3_BUCKET_NAME, output_filename)
-        
-        os.remove(output_filename)  # Remove the local copy
-        
-        return jsonify({'success': True, 'file': output_filename})
+        merged_filename = process_files(valid_files, template_name, date)
+        return jsonify({'success': True, 'file': merged_filename})
     except Exception as e:
-        logger.error(f"Error generating SPJ: {str(e)}")
-        return jsonify({'error': 'An error occurred while generating the SPJ'}), 500
+        print(f"Error processing files: {str(e)}")  # line for debugging
+        return jsonify({'error': str(e)}), 500
 
-# Update download routes to work with S3
-
-@app.route('/download-spj/<filename>')
-def download_spj(filename):
+@app.route('/download/<filename>')
+def download_file(filename):
     try:
         file_obj = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
         return send_file(
             io.BytesIO(file_obj['Body'].read()),
             as_attachment=True,
-            attachment_filename=filename,
+            download_name=filename,
             mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         )
     except ClientError as e:
-        logger.error(f"Error downloading file from S3: {str(e)}")
-        return jsonify({'error': 'File not found'}), 404
-    
-@app.route('/get-components', methods=['GET'])
-def get_components():
-    app.logger.debug(f"Getting components: {components}")
-    return jsonify(components)
+        return str(e), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

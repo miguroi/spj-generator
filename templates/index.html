@@ -23,24 +23,17 @@
     <h3>Daftar Komponen</h3>
     <div id="components-list"></div>
 
-    <h3>Tambah Komponen</h3>
     <div id="add-component-form">
-        <button class="add-btn pdf" onclick="addComponent('PDF')">PDF</button>
-        <button class="add-btn image" onclick="addComponent('Foto')">Foto</button>
-        <button class="add-btn doc" onclick="addComponent('Dokumen')">Dokumen</button>
+        <input type="text" id="new-component-name" placeholder="Nama Komponen">
+        <select id="new-component-type">
+            <option value="Foto">Foto</option>
+            <option value="Dokumen">Dokumen</option>
+            <option value="PDF">PDF</option>
+        </select>
+        <button id="add-component-btn">Tambah komponen</button>
     </div>
 
     <button id="generate-spj-btn">Generate SPJ</button>
-
-    <h3>Generate Kuitansi</h3>
-    <div id="kuitansi-form">
-        <input type="text" id="kuitansi-nomor" placeholder="Nomor Kuitansi">
-        <input type="text" id="kuitansi-pengirim" placeholder="Pengirim">
-        <input type="number" id="kuitansi-jumlah" placeholder="Jumlah">
-        <input type="text" id="kuitansi-terbilang" placeholder="Terbilang">
-        <textarea id="kuitansi-uraian" placeholder="Uraian"></textarea>
-        <button id="generate-kuitansi-btn">Generate Kuitansi</button>
-    </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
