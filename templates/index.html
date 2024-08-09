@@ -9,31 +9,38 @@
 <body>
     <h1>SPJ Generator</h1>
     <h2>Asisten Otomatis untuk Membuat SPJ</h2>
-    
+
     <div id="template-form">
         <label for="template-name">Nama template:</label>
-        <input type="text" id="template-name" required>
+        <input type="text" id="template-name">
     </div>
 
     <div id="date-form">
         <label for="date">Tanggal Acara:</label>
-        <input type="date" id="date" required>
+        <input type="date" id="date">
     </div>
 
     <h3>Daftar Komponen</h3>
     <div id="components-list"></div>
 
     <div id="add-component-form">
-        <input type="text" id="new-component-name" placeholder="Nama Komponen">
-        <select id="new-component-type">
-            <option value="Foto">Foto</option>
-            <option value="Dokumen">Dokumen</option>
-            <option value="PDF">PDF</option>
-        </select>
-        <button id="add-component-btn">Tambah komponen</button>
+        <button class="add-btn pdf" onclick="addComponent('PDF')">PDF</button>
+        <button class="add-btn image" onclick="addComponent('Foto')">Foto</button>
+        <button class="add-btn doc" onclick="addComponent('Dokumen')">Dokumen</button>
     </div>
 
     <button id="generate-spj-btn">Generate SPJ</button>
+
+    <h3>Generate Kuitansi</h3>
+    <div id="kuitansi-form">
+        <input type="text" id="kuitansi-nomor" placeholder="Nomor">
+        <input type="text" id="kuitansi-pengirim" placeholder="Pengirim">
+        <input type="text" id="kuitansi-jumlah" placeholder="Jumlah">
+        <input type="text" id="kuitansi-terbilang" placeholder="Terbilang">
+        <textarea id="kuitansi-uraian" placeholder="Uraian"></textarea>
+        <!-- Add more fields as necessary -->
+        <button onclick="generateKuitansi()">Generate Kuitansi</button>
+    </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

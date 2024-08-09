@@ -13,6 +13,7 @@ import tempfile
 import logging
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+import carbone
 
 app = Flask(__name__)
 
@@ -168,6 +169,42 @@ def download_file(filename):
         )
     except ClientError as e:
         return str(e), 404
+
+@app.route('/generate-kuitansi', methods=['POST'])
+def generate_kuitansi():
+    data = request.json
+    
+    try:
+        # Run the Node.js script
+        process = subprocess.Popen(['node', 'carbone_service/generate_kuitansi.js'],
+                                   stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        
+        # Send data to the Node.js script
+        stdout, stderr = process.communicate(input=json.dumps(data).encode())
+        
+        if stderr:
+            raise Exception(stderr.decode())
+        
+        result = json.loads(stdout.decode())
+        
+        if 'error' in result:
+            raise Exception(result['error'])
+        
+        output_filename = f'Kuitansi_{data["nomor"]}.docx'
+        temp_file_path = result['file']
+        
+        # Upload to S3
+        s3_client.upload_file(temp_file_path, S3_BUCKET_NAME, output_filename)
+        
+        # Remove the temporary file
+        os.unlink(temp_file_path)
+        
+        return jsonify({'success': True, 'file': output_filename})
+    except Exception as e:
+        logger.error(f"Error generating kuitansi: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=False)
