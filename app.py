@@ -80,11 +80,10 @@ def convert_pdf_to_docx(pdf_content):
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def process_files(files, template_name, date):
+def process_files(files, template_name, date, file_types):
     merged_doc = Document()
     composer = Composer(merged_doc)
     
-    file_types = request.form.getlist('file_types')
     captions = request.form.getlist('captions')
     
     logger.info(f"Processing {len(files)} files")
@@ -194,11 +193,13 @@ def generate_spj():
         invoice_file_obj = type('', (), {})()
         invoice_file_obj.filename = invoice_filename
         valid_files.append(invoice_file_obj)
-        file_types.append('Dokumen')  # Assuming invoice is always a document
+        
+        # Create a list of file types
+        file_types = request.form.getlist('file_types') + ['Dokumen']  # Assuming invoice is always a document
         
         logger.info(f"Total files to process (including invoice): {len(valid_files)}")
         
-        merged_filename = process_files(valid_files, template_name, date)
+        merged_filename = process_files(valid_files, template_name, date, file_types)
         logger.info(f"Merged file created: {merged_filename}")
         
         return jsonify({'success': True, 'file': merged_filename})
