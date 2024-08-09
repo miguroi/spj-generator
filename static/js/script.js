@@ -242,7 +242,7 @@ function generateKuitansi() {
     const invoiceData = getInvoiceData();
     console.log('Generating Kuitansi with data:', invoiceData);
     
-    fetch('/generate_kuitansi', {
+    fetch('/generate_invoice', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
