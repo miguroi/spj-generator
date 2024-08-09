@@ -416,33 +416,28 @@ function generateSPJ() {
     });
 }
 
-function toggleForms() {
+function toggleForms(event) {
+    const clickedBtn = event.target;
     const invoiceDetails = document.getElementById('invoice-details');
     const notulensiDetails = document.getElementById('notulensi-details');
     const invoiceBtn = document.getElementById('toggle-invoice-details');
     const notulensiBtn = document.getElementById('toggle-notulensi-details');
 
-    if (this.id === 'toggle-invoice-details') {
-        if (invoiceDetails.style.display === 'none') {
-            invoiceDetails.style.display = 'block';
-            notulensiDetails.style.display = 'none';
-            invoiceBtn.classList.add('active');
-            notulensiBtn.classList.remove('active');
-        } else {
-            invoiceDetails.style.display = 'none';
-            invoiceBtn.classList.remove('active');
-        }
+    if (clickedBtn.id === 'toggle-invoice-details') {
+        invoiceDetails.style.display = invoiceDetails.style.display === 'none' ? 'block' : 'none';
+        notulensiDetails.style.display = 'none';
+        clickedBtn.classList.toggle('active');
+        notulensiBtn.classList.remove('active');
     } else {
-        if (notulensiDetails.style.display === 'none') {
-            notulensiDetails.style.display = 'block';
-            invoiceDetails.style.display = 'none';
-            notulensiBtn.classList.add('active');
-            invoiceBtn.classList.remove('active');
-        } else {
-            notulensiDetails.style.display = 'none';
-            notulensiBtn.classList.remove('active');
-        }
+        notulensiDetails.style.display = notulensiDetails.style.display === 'none' ? 'block' : 'none';
+        invoiceDetails.style.display = 'none';
+        clickedBtn.classList.toggle('active');
+        invoiceBtn.classList.remove('active');
     }
+
+    console.log('Toggle button clicked:', clickedBtn.id);
+    console.log('Invoice details display:', invoiceDetails.style.display);
+    console.log('Notulensi details display:', notulensiDetails.style.display);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -452,5 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (toggleInvoiceBtn && toggleNotulensiBtn) {
         toggleInvoiceBtn.addEventListener('click', toggleForms);
         toggleNotulensiBtn.addEventListener('click', toggleForms);
+    } else {
+        console.error('Toggle buttons not found');
     }
 });
