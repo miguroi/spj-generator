@@ -1,6 +1,9 @@
 {
     "name": "spj-generator",
     "version": "1.0.0",
+    "engines": {
+      "node": "14.x"
+    },
     "dependencies": {
       "carbone": "^3.2.3"
     }
