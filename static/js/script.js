@@ -219,6 +219,7 @@ function getInvoiceData() {
 
 function generateKuitansi() {
     const invoiceData = getInvoiceData();
+    console.log('Generating Kuitansi with data:', invoiceData);
     
     fetch('/generate_kuitansi', {
         method: 'POST',
@@ -230,15 +231,16 @@ function generateKuitansi() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Kuitansi generated successfully!');
-            // Add the generated invoice to the components list
+            console.log('Kuitansi generated successfully. Filename:', data.filename);
             components.push({
                 name: 'Generated Kuitansi',
                 type: 'Dokumen',
                 file: new File([new Blob()], data.filename, {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})
             });
+            console.log('Updated components list:', components);
             updateComponentsList();
         } else {
+            console.error('Error generating Kuitansi:', data.error);
             alert('Error generating Kuitansi: ' + data.error);
         }
     })

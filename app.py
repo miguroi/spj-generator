@@ -87,12 +87,14 @@ def process_files(files, template_name, date):
     file_types = request.form.getlist('file_types')
     captions = request.form.getlist('captions')
     
-    for file, file_type, caption in zip(files, file_types, captions + [None] * len(files)):
+    logger.info(f"Processing {len(files)} files")
+    
+    for i, (file, file_type, caption) in enumerate(zip(files, file_types, captions + [None] * len(files))):
         try:
-            logger.debug(f"Processing file: {file.filename}")
+            logger.info(f"Processing file {i+1}: {file.filename}, Type: {file_type}")
             file_content = file.read()
             if file_type == 'Foto':
-                logger.debug(f"{file.filename} is an image")
+                logger.info(f"{file.filename} is an image")
                 if caption:
                     para = merged_doc.add_paragraph()
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -103,9 +105,9 @@ def process_files(files, template_name, date):
                 img_stream = io.BytesIO()
                 pil_image.save(img_stream, format=pil_image.format)
                 img_stream.seek(0)
-                merged_doc.add_picture(img_stream, width=Inches(6))  # Increased width for better visibility
+                merged_doc.add_picture(img_stream, width=Inches(6))
             elif file_type == 'PDF':
-                logger.debug(f"{file.filename} is a PDF")
+                logger.info(f"{file.filename} is a PDF")
                 docx_content = convert_pdf_to_docx(file_content)
                 if docx_content is None:
                     logger.error(f"PDF conversion failed for {file.filename}")
@@ -113,7 +115,7 @@ def process_files(files, template_name, date):
                 doc = Document(io.BytesIO(docx_content))
                 composer.append(doc)
             else:
-                logger.debug(f"{file.filename} is a document")
+                logger.info(f"{file.filename} is a document")
                 doc = Document(io.BytesIO(file_content))
                 composer.append(doc)
         except Exception as e:
@@ -128,6 +130,7 @@ def process_files(files, template_name, date):
     # Upload to S3
     try:
         s3_client.upload_fileobj(output_stream, S3_BUCKET_NAME, output_filename)
+        logger.info(f"Uploaded merged file to S3: {output_filename}")
     except Exception as e:
         logger.error(f"Error uploading to S3: {str(e)}")
         raise
@@ -161,10 +164,14 @@ def generate_spj():
     files = request.files.getlist('files')
     invoice_data = json.loads(request.form.get('invoiceData'))
     
+    logger.info(f"Generating SPJ - Template: {template_name}, Date: {date}")
+    logger.info(f"Number of files received: {len(files)}")
+    
     if not template_name or not date or not files:
         return jsonify({'error': 'Missing required data'}), 400
     
     valid_files = [f for f in files if f and allowed_file(f.filename)]
+    logger.info(f"Number of valid files: {len(valid_files)}")
     
     if not valid_files:
         return jsonify({'error': 'No valid files to process'}), 400
@@ -172,6 +179,7 @@ def generate_spj():
     try:
         # Generate invoice using the data from the frontend
         invoice_path = generate_invoice(invoice_data)
+        logger.info(f"Invoice generated at: {invoice_path}")
         
         # Add the generated invoice to the list of files to process
         with open(invoice_path, 'rb') as invoice_file:
@@ -179,7 +187,11 @@ def generate_spj():
             invoice_file_obj.name = os.path.basename(invoice_path)
             valid_files.append(invoice_file_obj)
         
+        logger.info(f"Total files to process (including invoice): {len(valid_files)}")
+        
         merged_filename = process_files(valid_files, template_name, date)
+        logger.info(f"Merged file created: {merged_filename}")
+        
         return jsonify({'success': True, 'file': merged_filename})
     except Exception as e:
         logger.error(f"Error processing files: {str(e)}")
@@ -201,10 +213,12 @@ def download_file(filename):
 @app.route('/generate_kuitansi', methods=['POST'])
 def generate_kuitansi():
     invoice_data = request.json
+    logger.info(f"Received invoice data: {invoice_data}")
     
     try:
         # Generate invoice using the data from the frontend
         invoice_path = generate_invoice(invoice_data)
+        logger.info(f"Invoice generated at: {invoice_path}")
         
         # Get the filename
         filename = os.path.basename(invoice_path)
@@ -212,6 +226,7 @@ def generate_kuitansi():
         # Upload the file to S3
         with open(invoice_path, 'rb') as invoice_file:
             s3_client.upload_fileobj(invoice_file, S3_BUCKET_NAME, filename)
+        logger.info(f"Invoice uploaded to S3: {filename}")
         
         # Remove the local file after uploading to S3
         os.remove(invoice_path)
