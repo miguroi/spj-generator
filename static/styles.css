@@ -105,21 +105,6 @@ button:hover {
     background-color: #c8ebfb;
 }
 
-@media (max-width: 600px) {
-    body {
-        padding: 10px;
-    }
-
-    .component-item {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .component-item button {
-        margin-top: 10px;
-    }
-}
-
 .invoice-item {
     display: flex;
     align-items: center;
@@ -152,6 +137,36 @@ button:hover {
     background-color: #cc0000;
 }
 
+.toggle-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.toggle-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.toggle-btn:hover {
+    background-color: #45a049;
+}
+
+.toggle-btn.active {
+    background-color: #357a38;
+}
+
+.toggle-content {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
 @media (max-width: 768px) {
     .invoice-item {
         flex-wrap: wrap;
@@ -167,32 +182,17 @@ button:hover {
     }
 }
 
-#toggle-invoice-details, #toggle-notulensi-details {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin-right: 10px; /* Spacing between the toggle buttons */
-}
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
 
-#toggle-invoice-details:hover, #toggle-notulensi-details:hover {
-    background-color: #45a049;
-}
+    .component-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-#invoice-details {
-    background-color: #f9f9f9;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-#invoice-form input, #invoice-form textarea {
-    width: 100%;
-    margin-bottom: 10px;
-}
-
-#invoice-form .toggle-buttons {
-    display: flex;
-    gap: 10px;
+    .component-item button {
+        margin-top: 10px;
+    }
 }
