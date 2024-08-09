@@ -1,94 +1,112 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
     padding: 20px;
-    background-color: #f0f0f0;
 }
 
 h1, h2, h3 {
-    text-align: center;
     color: #333;
 }
 
-#template-form, #date-form, #add-component-form {
-    background-color: white;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.form-group {
+    margin-bottom: 15px;
 }
 
-input, select, button {
-    font-family: inherit;
-    font-size: 16px;
-    margin: 5px 0;
-    padding: 8px;
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="file"] {
     width: 100%;
-    box-sizing: border-box;
+    padding: 8px;
+    margin-bottom: 10px;
 }
 
-button {
+.component-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.component-btn {
+    padding: 10px 15px;
     background-color: #4CAF50;
     color: white;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s;
+    border-radius: 5px;
 }
 
-button:hover {
+.component-btn:hover {
     background-color: #45a049;
 }
 
-#add-component-btn, #generate-spj-btn {
-    display: block;
-    width: 200px;
-    margin: 20px auto;
-}
-
-#components-list {
-    background-color: white;
-    border-radius: 5px;
-    padding: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
 .component-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background-color: #fff;
+    border: 1px solid #ddd;
     padding: 10px;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
     border-radius: 5px;
-}
-
-.component-item:hover {
-    background-color: #f0f0f0;
-}
-
-.component-item button {
-    width: auto;
-    padding: 5px 10px;
-    background-color: #f44336;
-}
-
-.component-item button:hover {
-    background-color: #d32f2f;
+    display: flex;
+    align-items: center;
 }
 
 .drag-handle {
     cursor: move;
-    padding: 5px;
-    margin-right: 10px;
+    padding: 5px 10px;
     color: #888;
 }
 
-.file-name {
-    font-size: 0.9em;
-    color: #666;
+.file-type-label {
+    background-color: #e0e0e0;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
     margin-left: 10px;
+}
+
+.remove-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-left: auto;
+}
+
+.remove-btn:hover {
+    background-color: #d32f2f;
+}
+
+#generate-spj-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    border-radius: 5px;
+}
+
+#generate-spj-btn:hover {
+    background-color: #1976D2;
 }
 
 .sortable-ghost {
@@ -96,9 +114,13 @@ button:hover {
     background-color: #c8ebfb;
 }
 
-@media (max-width: 600px) {
-    body {
-        padding: 10px;
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+    }
+    
+    .component-buttons {
+        flex-direction: column;
     }
 
     .component-item {
@@ -106,7 +128,8 @@ button:hover {
         align-items: flex-start;
     }
 
-    .component-item button {
+    .remove-btn {
+        margin-left: 0;
         margin-top: 10px;
     }
 }
