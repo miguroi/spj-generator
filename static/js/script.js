@@ -1,4 +1,5 @@
 let components = [];
+let sortable;
 
 function updateComponentsList() {
     const list = document.getElementById('components-list');
@@ -6,6 +7,7 @@ function updateComponentsList() {
     components.forEach((component, index) => {
         const div = document.createElement('div');
         div.className = 'component-item';
+        div.setAttribute('data-id', index);
         let html = `
             <span>${component.name} (${component.type})</span>
             <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
@@ -20,10 +22,6 @@ function updateComponentsList() {
         
         html += `
             <button onclick="removeComponent(${index})">Hapus</button>
-            <div class="move-buttons">
-                <button onclick="moveComponent(${index}, -1)">↑</button>
-                <button onclick="moveComponent(${index}, 1)">↓</button>
-            </div>
         `;
         
         div.innerHTML = html;
@@ -35,6 +33,23 @@ function updateComponentsList() {
             dataTransfer.items.add(component.file);
             fileInput.files = dataTransfer.files;
         }
+    });
+
+    if (sortable) {
+        sortable.destroy();
+    }
+    
+    sortable = new Sortable(list, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function (evt) {
+            const oldIndex = evt.oldIndex;
+            const newIndex = evt.newIndex;
+            if (oldIndex !== newIndex) {
+                const movedComponent = components.splice(oldIndex, 1)[0];
+                components.splice(newIndex, 0, movedComponent);
+            }
+        },
     });
 }
 
@@ -71,14 +86,6 @@ function addComponent() {
 function removeComponent(index) {
     components.splice(index, 1);
     updateComponentsList();
-}
-
-function moveComponent(index, direction) {
-    const newIndex = index + direction;
-    if (newIndex >= 0 && newIndex < components.length) {
-        [components[index], components[newIndex]] = [components[newIndex], components[index]];
-        updateComponentsList();
-    }
 }
 
 function handleFileUpload(event, index) {
