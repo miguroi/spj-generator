@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleInvoiceDetailsBtn.addEventListener('click', function() {
             if (invoiceDetails.style.display === 'none') {
                 invoiceDetails.style.display = 'block';
-                toggleInvoiceDetailsBtn.textContent = 'Hide Invoice Details';
+                toggleInvoiceDetailsBtn.textContent = 'Sembunyikan Detail Kuitansi';
             } else {
                 invoiceDetails.style.display = 'none';
-                toggleInvoiceDetailsBtn.textContent = 'Show Invoice Details';
+                toggleInvoiceDetailsBtn.textContent = 'Tampilkan Detail Kuitansi';
             }
         });
     }
