@@ -409,3 +409,32 @@ function generateSPJ() {
         alert('An error occurred while generating the SPJ. Please try again.');
     });
 }
+
+function toggleForms() {
+    const invoiceDetails = document.getElementById('invoice-details');
+    const notulensiDetails = document.getElementById('notulensi-details');
+    const invoiceBtn = document.getElementById('toggle-invoice-details');
+    const notulensiBtn = document.getElementById('toggle-notulensi-details');
+
+    if (this.id === 'toggle-invoice-details') {
+        invoiceDetails.style.display = 'block';
+        notulensiDetails.style.display = 'none';
+        invoiceBtn.classList.add('active');
+        notulensiBtn.classList.remove('active');
+    } else {
+        invoiceDetails.style.display = 'none';
+        notulensiDetails.style.display = 'block';
+        invoiceBtn.classList.remove('active');
+        notulensiBtn.classList.add('active');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleInvoiceBtn = document.getElementById('toggle-invoice-details');
+    const toggleNotulensiBtn = document.getElementById('toggle-notulensi-details');
+
+    if (toggleInvoiceBtn && toggleNotulensiBtn) {
+        toggleInvoiceBtn.addEventListener('click', toggleForms);
+        toggleNotulensiBtn.addEventListener('click', toggleForms);
+    }
+});
