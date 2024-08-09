@@ -26,7 +26,6 @@ function initializeApp() {
         console.error('Generate SPJ button not found');
     }
 
-    // Initialize sortable if components list exists
     const componentsList = document.getElementById('components-list');
     if (componentsList) {
         initializeSortable();
@@ -49,7 +48,6 @@ function initializeSortable() {
                 const oldIndex = evt.oldIndex;
                 console.log(`Item moved from index ${oldIndex} to ${newIndex}`);
                 
-                // Update the components array
                 const movedComponent = components.splice(oldIndex, 1)[0];
                 components.splice(newIndex, 0, movedComponent);
             }
@@ -71,7 +69,12 @@ function updateComponentsList() {
         div.setAttribute('data-id', index);
         let html = `
             <span class="drag-handle">☰</span>
-            <span>${component.name} (${component.type})</span>
+            <span>${component.name}</span>
+            <select onchange="handleTypeChange(event, ${index})">
+                <option value="Foto" ${component.type === 'Foto' ? 'selected' : ''}>Foto</option>
+                <option value="Dokumen" ${component.type === 'Dokumen' ? 'selected' : ''}>Dokumen</option>
+                <option value="PDF" ${component.type === 'PDF' ? 'selected' : ''}>PDF</option>
+            </select>
             <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
             <span class="file-name">${component.file ? component.file.name : 'No file selected'}</span>
         `;
@@ -98,6 +101,14 @@ function updateComponentsList() {
     });
 
     console.log(`Updated list with ${components.length} components`);
+}
+
+function handleTypeChange(event, index) {
+    const newType = event.target.value;
+    components[index].type = newType;
+    components[index].file = null; // Reset file when type changes
+    console.log(`Type changed for component ${index}: ${newType}`);
+    updateComponentsList();
 }
 
 function handleCaptionChange(event, index) {
