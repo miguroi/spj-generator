@@ -96,6 +96,9 @@ def process_files(files, template_name, date, file_types):
             if file.filename.startswith('invoice_'):
                 s3_object = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=file.filename)
                 file_content = s3_object['Body'].read()
+            elif file.filename.startswith('notulensi_'):
+                s3_object = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=file.filename)
+                file_content = s3_object['Body'].read()
             else:
                 file_content = file.read()
             
@@ -159,6 +162,22 @@ def generate_invoice(data):
         print(f"Error running Node.js script: {e}")
         print(f"Script error output: {e.stderr}")
         raise Exception("Failed to generate invoice")
+
+def generate_notulensi(data):
+    try:
+        json_data = json.dumps(data)
+        result = subprocess.run(['/app/.heroku/node/bin/node', 'generate_notulensi.js', json_data], capture_output=True, text=True, check=True)
+        
+        # Extract the output path from the Node.js script output
+        output_path_match = re.search(r'OUTPUT_PATH:(.+)', result.stdout)
+        if output_path_match:
+            return output_path_match.group(1).strip()
+        else:
+            raise Exception("Failed to extract output path from Node.js script")
+    except subprocess.CalledProcessError as e:
+        print(f"Error running Node.js script: {e}")
+        print(f"Script error output: {e.stderr}")
+        raise Exception("Failed to generate notulensi")
 
 @app.route('/')
 def index():
@@ -244,6 +263,28 @@ def generate_kuitansi():
         return jsonify({'success': True, 'filename': filename})
     except Exception as e:
         logger.error(f"Error generating kuitansi: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/generate_notulensi', methods=['POST'])
+def generate_notulensi():
+    notulensi_data = request.json
+    logger.info(f"Received notulensi data: {notulensi_data}")
+    
+    try:
+        notulensi_path = generate_notulensi(notulensi_data)
+        logger.info(f"Notulensi generated at: {notulensi_path}")
+        
+        filename = os.path.basename(notulensi_path)
+        
+        with open(notulensi_path, 'rb') as notulensi_file:
+            s3_client.upload_fileobj(notulensi_file, S3_BUCKET_NAME, filename)
+        logger.info(f"Notulensi uploaded to S3: {filename}")
+        
+        os.remove(notulensi_path)
+        
+        return jsonify({'success': True, 'filename': filename})
+    except Exception as e:
+        logger.error(f"Error generating notulensi: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':

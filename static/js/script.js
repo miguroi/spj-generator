@@ -265,6 +265,92 @@ function generateKuitansi() {
     });
 }
 
+function toggleNotulensiDetails() {
+    const notulensiDetails = document.getElementById('notulensi-details');
+    const toggleBtn = document.getElementById('toggle-notulensi-details');
+    if (notulensiDetails.style.display === 'none') {
+        notulensiDetails.style.display = 'block';
+        toggleBtn.textContent = 'Sembunyikan Detail Notulensi';
+    } else {
+        notulensiDetails.style.display = 'none';
+        toggleBtn.textContent = 'Tampilkan Detail Notulensi';
+    }
+}
+
+function addPeserta() {
+    const pesertaList = document.getElementById('notulensi-peserta-list');
+    const newItem = document.createElement('div');
+    newItem.className = 'peserta-item';
+    newItem.innerHTML = `
+        <input type="text" class="peserta-name" placeholder="Nama Peserta">
+        <button class="remove-peserta" title="Remove Peserta">&times;</button>
+    `;
+    pesertaList.appendChild(newItem);
+
+    newItem.querySelector('.remove-peserta').addEventListener('click', function() {
+        pesertaList.removeChild(newItem);
+    });
+}
+
+function getNotulensiData() {
+    const pesertaList = Array.from(document.querySelectorAll('.peserta-item')).map(item => ({
+        peserta: item.querySelector('.peserta-name').value
+    }));
+
+    return {
+        namaNotulen: document.getElementById('notulensi-nama').value,
+        hari: document.getElementById('notulensi-hari').value,
+        tanggal: document.getElementById('notulensi-tanggal').value,
+        tempat: document.getElementById('notulensi-tempat').value,
+        item: pesertaList,
+        hasilNotulen: document.getElementById('notulensi-hasil').value,
+        PPS: {
+            nama: document.getElementById('notulensi-pps').value,
+            namaSekretaris: document.getElementById('notulensi-sekretaris').value,
+            NIPSekretaris: document.getElementById('notulensi-nip').value
+        }
+    };
+}
+
+function generateNotulensi() {
+    const notulensiData = getNotulensiData();
+    console.log('Generating Notulensi with data:', notulensiData);
+    
+    fetch('/generate_notulensi', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notulensiData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Notulensi generated successfully. Filename:', data.filename);
+            components.push({
+                name: 'Generated Notulensi',
+                type: 'Dokumen',
+                file: new File([new Blob()], data.filename, {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})
+            });
+            updateComponentsList();
+        } else {
+            console.error('Error generating Notulensi:', data.error);
+            alert('Error generating Notulensi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while generating the Notulensi. Please try again.');
+    });
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('toggle-notulensi-details').addEventListener('click', toggleNotulensiDetails);
+    document.getElementById('generate-notulensi-btn').addEventListener('click', generateNotulensi);
+    document.getElementById('add-peserta-btn').addEventListener('click', addPeserta);
+});
+
 function generateSPJ() {
     console.log('Generating SPJ');
     const templateName = document.getElementById('template-name').value;

@@ -34,9 +34,9 @@
         <h4>Barang</h4>
         <div id="invoice-items">
             <div class="invoice-item">
-                <input type="text" class="item-type" placeholder="Jenis Barang (cth. Konsumsi Peserta)">
-                <input type="text" class="item-quantity" placeholder="Jumlah Barang (cth. 25 Orang)">
-                <input type="text" class="item-price" placeholder="Harga Barang (cth. 25.000,-)">
+                <input type="text" class="item-type" placeholder="Jenis (cth. Konsumsi Peserta)">
+                <input type="text" class="item-quantity" placeholder="Jumlah (cth. 25 Orang)">
+                <input type="text" class="item-price" placeholder="Harga (cth. 25.000,-)">
                 <input type="text" class="item-total" placeholder="Total">
             </div>
         </div>
@@ -49,12 +49,26 @@
         <button id="generate-kuitansi-btn">Generate Kuitansi</button>
     </div>
     <div id="notulensi-details" style="display: none;">
-        <input type="text" id="notulensi-number" placeholder="Nomor Notulensi">
-        <input type="text" id="notulensi-date" placeholder="Tanggal Notulensi">
-        <input type="text" id="notulensi-location" placeholder="Lokasi Notulensi">
-        <input type="text" id="notulensi-participants" placeholder="Peserta Notulensi">
-        <input type="text" id="notulensi-agenda" placeholder="Agenda Notulensi">
-        <p>This is the notulensi details.</p>
+        <input type="text" id="notulensi-nama" placeholder="Nama Notulen">
+        <input type="text" id="notulensi-hari" placeholder="Hari">
+        <input type="date" id="notulensi-tanggal" placeholder="Tanggal">
+        <input type="text" id="notulensi-tempat" placeholder="Tempat">
+        
+        <h4>Peserta yang Hadir</h4>
+        <div id="notulensi-peserta-list">
+            <div class="peserta-item">
+                <input type="text" class="peserta-name" placeholder="Nama Peserta">
+            </div>
+        </div>
+        <button id="add-peserta-btn">Tambah Peserta</button>
+        
+        <textarea id="notulensi-hasil" placeholder="Hasil Notulen"></textarea>
+        
+        <input type="text" id="notulensi-pps" placeholder="Nama PPS">
+        <input type="text" id="notulensi-sekretaris" placeholder="Nama Sekretaris PPS">
+        <input type="text" id="notulensi-nip" placeholder="NIP Sekretaris">
+        
+        <button id="generate-notulensi-btn">Generate Notulensi</button>
     </div>
 </div>
 
