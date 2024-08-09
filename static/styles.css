@@ -207,7 +207,7 @@ button:hover {
     padding: 10px 20px;
     margin: 0 10px;
     background-color: #f0f0f0;
-    border: none;
+    border: 1px solid #ccc;
     cursor: pointer;
     transition: background-color 0.3s;
 }
@@ -215,4 +215,11 @@ button:hover {
 .toggle-btn.active {
     background-color: #4CAF50;
     color: white;
+}
+
+#invoice-details, #notulensi-details {
+    display: none;
+    padding: 20px;
+    border: 1px solid #ccc;
+    margin-top: 20px;
 }

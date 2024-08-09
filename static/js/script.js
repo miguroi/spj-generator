@@ -3,30 +3,33 @@ let sortable;
 let invoiceItems = [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded and parsed');
-    const addInvoiceItemBtn = document.getElementById('add-invoice-item');
-    if (addInvoiceItemBtn) {
-        addInvoiceItemBtn.addEventListener('click', addInvoiceItem);
-    }
-
-    const generateKuitansiBtn = document.getElementById('generate-kuitansi-btn');
-    if (generateKuitansiBtn) {
-        generateKuitansiBtn.addEventListener('click', generateKuitansi);
-    }
-
-    const toggleInvoiceDetailsBtn = document.getElementById('toggle-invoice-details');
+    const toggleInvoiceBtn = document.getElementById('toggle-invoice-details');
+    const toggleNotulensiBtn = document.getElementById('toggle-notulensi-details');
     const invoiceDetails = document.getElementById('invoice-details');
+    const notulensiDetails = document.getElementById('notulensi-details');
 
-    if (toggleInvoiceDetailsBtn) {
-        toggleInvoiceDetailsBtn.addEventListener('click', function() {
-            if (invoiceDetails.style.display === 'none') {
-                invoiceDetails.style.display = 'block';
-                // toggleInvoiceDetailsBtn.textContent = 'Sembunyikan Detail Kuitansi';
-            } else {
-                invoiceDetails.style.display = 'none';
-                // toggleInvoiceDetailsBtn.textContent = 'Tampilkan Detail Kuitansi';
-            }
-        });
+    function toggleForms(event) {
+        const clickedBtn = event.target;
+        const otherBtn = clickedBtn === toggleInvoiceBtn ? toggleNotulensiBtn : toggleInvoiceBtn;
+        const clickedDetails = clickedBtn === toggleInvoiceBtn ? invoiceDetails : notulensiDetails;
+        const otherDetails = clickedBtn === toggleInvoiceBtn ? notulensiDetails : invoiceDetails;
+
+        if (clickedDetails.style.display === 'none' || clickedDetails.style.display === '') {
+            clickedDetails.style.display = 'block';
+            otherDetails.style.display = 'none';
+            clickedBtn.classList.add('active');
+            otherBtn.classList.remove('active');
+        } else {
+            clickedDetails.style.display = 'none';
+            clickedBtn.classList.remove('active');
+        }
+    }
+
+    if (toggleInvoiceBtn && toggleNotulensiBtn) {
+        toggleInvoiceBtn.addEventListener('click', toggleForms);
+        toggleNotulensiBtn.addEventListener('click', toggleForms);
+    } else {
+        console.error('Toggle buttons not found');
     }
 
     initializeApp();
