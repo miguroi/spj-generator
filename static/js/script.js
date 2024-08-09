@@ -1,6 +1,8 @@
 let components = [];
 let sortable;
 
+Sortable.mount(new MultiDrag());
+
 function updateComponentsList() {
     const list = document.getElementById('components-list');
     list.innerHTML = '';
@@ -9,6 +11,7 @@ function updateComponentsList() {
         div.className = 'component-item';
         div.setAttribute('data-id', index);
         let html = `
+            <span class="drag-handle">☰</span>
             <span>${component.name} (${component.type})</span>
             <input type="file" accept="${getAcceptAttribute(component.type)}" onchange="handleFileUpload(event, ${index})">
             <span class="file-name">${component.file ? component.file.name : 'No file selected'}</span>
@@ -41,14 +44,34 @@ function updateComponentsList() {
     
     sortable = new Sortable(list, {
         animation: 150,
+        handle: '.drag-handle',
         ghostClass: 'sortable-ghost',
+        multiDrag: true,
+        selectedClass: 'selected',
+        fallbackTolerance: 3,
         onEnd: function (evt) {
-            const oldIndex = evt.oldIndex;
-            const newIndex = evt.newIndex;
-            if (oldIndex !== newIndex) {
-                const movedComponent = components.splice(oldIndex, 1)[0];
-                components.splice(newIndex, 0, movedComponent);
-            }
+            const oldIndices = evt.oldIndicies;
+            const newIndices = evt.newIndicies;
+            
+            // Create a new array to hold the updated components
+            let newComponents = [...components];
+            
+            // Sort the indices in descending order to avoid issues when splicing
+            oldIndices.sort((a, b) => b.index - a.index);
+            
+            // Remove the moved items from their old positions
+            oldIndices.forEach(({index}) => {
+                newComponents.splice(index, 1);
+            });
+            
+            // Insert the moved items into their new positions
+            newIndices.forEach(({index, multiDragElement}) => {
+                const componentIndex = parseInt(multiDragElement.getAttribute('data-id'));
+                newComponents.splice(index, 0, components[componentIndex]);
+            });
+            
+            // Update the components array
+            components = newComponents;
         },
     });
 }

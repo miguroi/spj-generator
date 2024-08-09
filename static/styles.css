@@ -38,11 +38,16 @@ button:hover {
     padding: 10px;
     background-color: #f0f0f0;
     border-radius: 5px;
-    cursor: move;
+    cursor: default;
 }
 
-.component-item button {
-    margin-left: 10px;
+.component-item.selected {
+    background-color: #e0e0ff;
+}
+
+.drag-handle {
+    cursor: move;
+    padding-right: 10px;
 }
 
 .sortable-ghost {
