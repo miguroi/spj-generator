@@ -417,15 +417,25 @@ function toggleForms() {
     const notulensiBtn = document.getElementById('toggle-notulensi-details');
 
     if (this.id === 'toggle-invoice-details') {
-        invoiceDetails.style.display = 'block';
-        notulensiDetails.style.display = 'none';
-        invoiceBtn.classList.add('active');
-        notulensiBtn.classList.remove('active');
+        if (invoiceDetails.style.display === 'none') {
+            invoiceDetails.style.display = 'block';
+            notulensiDetails.style.display = 'none';
+            invoiceBtn.classList.add('active');
+            notulensiBtn.classList.remove('active');
+        } else {
+            invoiceDetails.style.display = 'none';
+            invoiceBtn.classList.remove('active');
+        }
     } else {
-        invoiceDetails.style.display = 'none';
-        notulensiDetails.style.display = 'block';
-        invoiceBtn.classList.remove('active');
-        notulensiBtn.classList.add('active');
+        if (notulensiDetails.style.display === 'none') {
+            notulensiDetails.style.display = 'block';
+            invoiceDetails.style.display = 'none';
+            notulensiBtn.classList.add('active');
+            invoiceBtn.classList.remove('active');
+        } else {
+            notulensiDetails.style.display = 'none';
+            notulensiBtn.classList.remove('active');
+        }
     }
 }
 
